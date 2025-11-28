@@ -17,7 +17,7 @@ class PermissionRepository implements PermissionRepositoryInterface
     public function all()
     {
         // DB ke hisaab se "group_name" aur "name" use kar rahe hain
-        return $this->model->orderBy('group_name')->orderBy('name')->get();
+        return $this->model->orderBy('name')->get();
     }
 
     public function findByKey($key)

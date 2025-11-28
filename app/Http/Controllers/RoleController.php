@@ -16,7 +16,7 @@ class RoleController extends Controller
     {
         $this->roles = $roles;
         $this->perms = $perms;
-        $this->middleware('auth'); // protect routes
+        $this->middleware('auth');
     }
 
     public function index()
@@ -28,48 +28,45 @@ class RoleController extends Controller
 
     public function create()
     {
-        $permissions = $this->perms->all()->groupBy('module'); // grouped by module
+        $perms = $this->perms->all(); // now matching blade variable
 
-        return view('roles.create', compact('permissions'));
+        return view('roles.create', compact('perms'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'name' => ['required', 'string', 'max:80', 'alpha_dash', Rule::unique('roles', 'name')],
-            'display_name' => 'nullable|string|max:120',
-            'description' => 'nullable|string',
             'permissions' => 'nullable|array',
-            'permissions.*' => 'exists:permissions,id',
+            'permissions.*' => 'exists:permissions,name',
         ]);
 
         $this->roles->create($request->all());
 
-        return redirect()->route('roles.index')->with('success', 'Role created.');
+        return redirect()->back()->with('success', 'created ROle successfully.');
     }
 
     public function edit($id)
     {
         $role = $this->roles->find($id);
-        $permissions = $this->perms->all()->groupBy('module');
-        $assigned = $role->permissions->pluck('id')->toArray();
 
-        return view('roles.create', compact('role', 'permissions', 'assigned'));
+        $perms = $this->perms->all();
+        $assigned = $role->permissions->pluck('name')->toArray();
+
+        return view('roles.create', compact('role', 'perms', 'assigned'));
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
             'name' => ['required', 'string', 'max:80', 'alpha_dash', Rule::unique('roles', 'name')->ignore($id)],
-            'display_name' => 'nullable|string|max:120',
-            'description' => 'nullable|string',
             'permissions' => 'nullable|array',
-            'permissions.*' => 'exists:permissions,id',
+            'permissions.*' => 'exists:permissions,name',
         ]);
 
         $this->roles->update($id, $request->all());
 
-        return redirect()->route('roles.index')->with('success', 'Role updated.');
+        return redirect()->back()->with('success', 'updated Role successfully.');
     }
 
     public function destroy($id)

@@ -17,11 +17,16 @@ class SessionProgram extends Model
 
     public function session()
     {
-        return $this->belongsTo(Session::class);
+        return $this->belongsTo(Session::class, 'session_id');
     }
 
     public function program()
     {
-        return $this->belongsTo(Program::class);
+        return $this->belongsTo(Program::class, 'program_id');
+    }
+
+    public function students()
+    {
+        return $this->hasMany(Student::class, 'session_program_id');
     }
 }

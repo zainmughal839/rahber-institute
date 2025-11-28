@@ -27,9 +27,11 @@
                             </span>
                         </h3>
                         <div class="card-tools">
+                            @can('role.create')
                             <a href="{{ route('roles.create') }}" class="btn btn-light btn-sm shadow-sm">
                                 <i class="bi bi-plus-circle me-1"></i> Create New Role
                             </a>
+                            @endcan
                         </div>
                     </div>
                 </div>
@@ -42,7 +44,6 @@
                                 <tr>
                                     <th width="80" class="text-center">#</th>
                                     <th>Role Key</th>
-                                    <th>Display Name</th>
                                     <th>Permissions</th>
                                     <th width="130" class="text-center">Actions</th>
                                 </tr>
@@ -56,9 +57,7 @@
                                     <td>
                                         <code>{{ $r->name }}</code>
                                     </td>
-                                    <td>
-                                        {{ $r->display_name ?? '-' }}
-                                    </td>
+
                                     <td>
                                         @foreach($r->permissions as $p)
                                         <span
@@ -70,15 +69,19 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
+                                            @can('role.update')
                                             <a href="{{ route('roles.edit', $r->id) }}" class="btn btn-warning btn-sm"
                                                 title="Edit">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
+                                            @endcan
+                                            @can('role.delete')
                                             <button type="button" class="btn btn-danger btn-sm delete-btn"
                                                 data-id="{{ $r->id }}" data-name="{{ $r->display_name ?? $r->name }}"
                                                 title="Delete">
                                                 <i class="bi bi-trash"></i>
                                             </button>
+                                            @endcan
                                         </div>
                                         <!-- Hidden Delete Form -->
                                         <form id="delete-form-{{ $r->id }}"

@@ -14,9 +14,11 @@
                             {{ isset($user) ? 'Edit User' : 'Add New User' }}
                         </h3>
                         <div class="card-tools">
+                            @can('user.index')
                             <a href="{{ route('users.index') }}" class="btn btn-light btn-sm shadow-sm">
                                 <i class="bi bi-list-ul me-1"></i> All Users
                             </a>
+                            @endcan
                         </div>
                     </div>
                 </div>
@@ -31,6 +33,14 @@
                         <li>{{ $error }}</li>
                         @endforeach
                     </ul>
+                </div>
+                @endif
+
+                @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show m-4" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
                 @endif
 

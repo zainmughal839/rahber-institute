@@ -27,9 +27,11 @@
 
                         <!-- Header Buttons -->
                         <div class="card-tools">
+                            @can('session_program.create')
                             <a href="{{ route('session_program.create') }}" class="btn btn-light btn-sm shadow-sm me-2">
                                 <i class="bi bi-plus-circle me-1"></i> Add New Program
                             </a>
+                            @endcan
 
                             @if(isset($showAll))
                             <a href="{{ route('session_program.index') }}" class="btn btn-outline-light btn-sm">
@@ -56,7 +58,9 @@
                                     <th width="200">Session</th>
                                     <th width="200">Seats</th>
                                     <th width="200">Fees</th>
+                                    @canany(['session_program.update', 'session_program.delete'])
                                     <th width="130" class="text-center">Actions</th>
+                                    @endcan
                                 </tr>
                             </thead>
                             <tbody>
@@ -90,18 +94,23 @@
                                     </td>
                                     <td> {{ number_format($program->fees, 2) ?? '-' }}</td>
                                     <!-- Actions -->
+
+                                    @canany(['session_program.update', 'session_program.delete'])
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
+                                            @can('session_program.update')
                                             <a href="{{ route('session_program.edit', $program->id) }}"
                                                 class="btn btn-warning btn-sm" title="Edit">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
-
+                                            @endcan
+                                            @can('session_program.delete')
                                             <button type="button" class="btn btn-danger btn-sm delete-btn"
                                                 data-id="{{ $program->id }}" data-name="{{ $program->program->name }}"
                                                 title="Delete">
                                                 <i class="bi bi-trash"></i>
                                             </button>
+                                            @endcan
                                         </div>
 
                                         <form id="delete-form-{{ $program->id }}"
@@ -111,10 +120,11 @@
                                             @method('DELETE')
                                         </form>
                                     </td>
+                                    @endcan
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="5" class="text-center py-5 text-muted">
+                                    <td colspan="6" class="text-center py-5 text-muted">
                                         <i class="bi bi-journal-x display-1 d-block mb-3 opacity-50"></i>
                                         <h4>No session programs found</h4>
                                         <p>Create your first program to get started.</p>

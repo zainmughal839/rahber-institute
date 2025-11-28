@@ -46,8 +46,7 @@ class ProgramController extends Controller
 
         $this->programRepo->create($request->all());
 
-        return redirect()->route('programs.index')
-            ->with('success', 'Program added successfully.');
+        return redirect()->back()->with('success', 'Program Created successfully.');
     }
 
     public function edit($id)
@@ -69,8 +68,7 @@ class ProgramController extends Controller
 
         $this->programRepo->update($id, $request->all());
 
-        return redirect()->route('programs.index')
-            ->with('success', 'Program updated successfully.');
+        return redirect()->back()->with('success', 'Program Updated successfully.');
     }
 
     public function destroy($id)

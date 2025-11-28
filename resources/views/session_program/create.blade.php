@@ -14,9 +14,11 @@
                             Assign Program to Session
                         </h3>
                         <div class="card-tools">
+                            @can('session_program.index')
                             <a href="{{ route('session_program.index') }}" class="btn btn-light btn-sm shadow-sm">
                                 <i class="bi bi-list-ul me-1"></i> All Assignments
                             </a>
+                            @endcan
                         </div>
                     </div>
                 </div>

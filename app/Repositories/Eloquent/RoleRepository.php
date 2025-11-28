@@ -2,8 +2,8 @@
 
 namespace App\Repositories\Eloquent;
 
-use App\Models\Role;
 use App\Repositories\Interfaces\RoleRepositoryInterface;
+use Spatie\Permission\Models\Role;
 
 class RoleRepository implements RoleRepositoryInterface
 {
@@ -26,19 +26,19 @@ class RoleRepository implements RoleRepositoryInterface
 
     public function find($id)
     {
-        return $this->model->with('permissions')->findOrFail($id);
+        return $this->model->findOrFail($id);
     }
 
     public function create(array $data)
     {
         $role = $this->model->create([
             'name' => $data['name'],
-            'display_name' => $data['display_name'] ?? null,
-            'description' => $data['description'] ?? null,
+            'guard_name' => 'web',
         ]);
 
         if (!empty($data['permissions'])) {
-            $role->permissions()->sync($data['permissions']);
+            // permissions must be NAMES (NOT IDs)
+            $role->syncPermissions($data['permissions']);
         }
 
         return $role;
@@ -47,16 +47,16 @@ class RoleRepository implements RoleRepositoryInterface
     public function update($id, array $data)
     {
         $role = $this->model->findOrFail($id);
+
         $role->update([
             'name' => $data['name'],
-            'display_name' => $data['display_name'] ?? null,
-            'description' => $data['description'] ?? null,
+            'guard_name' => 'web',
         ]);
 
         if (isset($data['permissions'])) {
-            $role->permissions()->sync($data['permissions']);
+            $role->syncPermissions($data['permissions']);
         } else {
-            $role->permissions()->detach();
+            $role->syncPermissions([]);
         }
 
         return $role;
@@ -65,16 +65,15 @@ class RoleRepository implements RoleRepositoryInterface
     public function delete($id)
     {
         $role = $this->model->findOrFail($id);
-        $role->permissions()->detach();
-        $role->users()->detach(); // Detach users from role
+        $role->syncPermissions([]);
 
         return $role->delete();
     }
 
-    public function syncPermissions($id, array $permissionIds)
+    public function syncPermissions($id, array $permissionNames)
     {
         $role = $this->model->findOrFail($id);
-        $role->permissions()->sync($permissionIds);
+        $role->syncPermissions($permissionNames);
 
         return $role;
     }

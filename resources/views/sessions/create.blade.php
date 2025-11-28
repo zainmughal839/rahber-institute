@@ -1,4 +1,3 @@
-{{-- resources/views/sessions/create.blade.php --}}
 @extends('layout.master')
 
 @section('content')
@@ -14,11 +13,13 @@
                             <i class="bi {{ isset($session) ? 'bi-pencil-square' : 'bi-plus-circle' }} me-2"></i>
                             {{ isset($session) ? 'Edit Session' : 'Add New Session' }}
                         </h3>
+                        @can('session.index')
                         <div class="card-tools">
                             <a href="{{ route('sessions.index') }}" class="btn btn-light btn-sm shadow-sm">
                                 <i class="bi bi-list-ul me-1"></i> All Sessions
                             </a>
                         </div>
+                        @endcan
                     </div>
                 </div>
 
@@ -33,8 +34,16 @@
                         @endforeach
                     </ul>
                 </div>
+
                 @endif
-                @can('session.create')
+                @if(session('success'))
+                <div class="alert alert-success alert-dismissible m-3">
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <strong><i class="bi bi-check-circle"></i></strong> {{ session('success') }}
+                </div>
+                @endif
+
+
                 <!-- Form -->
                 <form method="POST"
                     action="{{ isset($session) ? route('sessions.update', $session->id) : route('sessions.store') }}"
@@ -109,11 +118,6 @@
                         </div>
                     </div>
                 </form>
-                @else
-                <div class="alert alert-danger text-center py-5">
-                    <h4>You don't have permission to create sessions.</h4>
-                </div>
-                @endcan
             </div>
         </div>
     </div>

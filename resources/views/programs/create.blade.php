@@ -11,11 +11,13 @@
                             <i class="bi {{ isset($program) ? 'bi-pencil-square' : 'bi-plus-circle' }} me-2"></i>
                             {{ isset($program) ? 'Edit Program' : 'Add New Program' }}
                         </h3>
+                        @can('program.index')
                         <div class="card-tools">
                             <a href="{{ route('programs.index') }}" class="btn btn-light btn-sm shadow-sm">
                                 <i class="bi bi-list-ul me-1"></i> All Programs
                             </a>
                         </div>
+                        @endcan
                     </div>
                 </div>
 
@@ -29,6 +31,14 @@
                         <li>{{ $error }}</li>
                         @endforeach
                     </ul>
+                </div>
+                @endif
+
+                @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show m-4" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
                 @endif
 

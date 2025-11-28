@@ -1,4 +1,4 @@
-{{-- resources/views/sessions/index.blade.php --}}
+{{-- resources/views/students/index.blade.php --}}
 @extends('layout.master')
 
 @section('content')
@@ -15,28 +15,31 @@
 
     <div class="row">
         <div class="col-12">
+
             <div class="card card-primary card-outline shadow-lg border-0">
 
-                <!-- Card Header -->
+                <!-- Header -->
                 <div class="card-header bg-primary text-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <h3 class="card-title fw-bold mb-0">
-                            <i class="bi bi-calendar3 me-2"></i>
-                            All Sessions
+                            <i class="bi bi-people-fill me-2"></i>
+                            All Students
                         </h3>
+
                         <div class="card-tools">
-                            @can('session.create')
-                            <a href="{{ route('sessions.create') }}" class="btn btn-light btn-sm shadow-sm me-2">
-                                <i class="bi bi-plus-circle me-1"></i> Add New Session
+                            @can('student.create')
+                            <a href="{{ route('students.create') }}" class="btn btn-light btn-sm shadow-sm me-2">
+                                <i class="bi bi-plus-circle me-1"></i> Add New Student
                             </a>
                             @endcan
 
                             @if(isset($showAll))
-                            <a href="{{ route('sessions.index') }}" class="btn btn-outline-light btn-sm">
+                            <a href="{{ route('students.index') }}" class="btn btn-outline-light btn-sm">
                                 <i class="bi bi-arrow-left-circle me-1"></i> Back to Paginated
                             </a>
                             @else
-                            <a href="{{ route('sessions.all') }}" class="btn btn-outline-light btn-sm">
+                            <a href="{{ route('students.index', ['all' => '1']) }}"
+                                class="btn btn-outline-light btn-sm">
                                 <i class="bi bi-list-ul me-1"></i> View All Records
                             </a>
                             @endif
@@ -44,65 +47,68 @@
                     </div>
                 </div>
 
-                <!-- Card Body -->
+                <!-- Table -->
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0 align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th width="80" class="text-center">#</th>
-
-                                    <th width="150">Start Date</th>
-                                    <th width="150">End Date</th>
-                                    <th width="300">Description</th>
-                                    <th width="140" class="text-center">Status</th>
-                                    @canany(['session.update', 'session.delete'])
+                                    <th width="50" class="text-center">#</th>
+                                    <th width="200">Student</th>
+                                    <!-- <th width="200">Father Name</th> -->
+                                    <th width="200">Roll num</th>
+                                    <th width="150">Phone</th>
+                                    <th width="150">Fee</th>
+                                    <th width="220">Session - Program</th>
+                                    @canany(['student.update', 'student.delete'])
                                     <th width="120" class="text-center">Actions</th>
                                     @endcan
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($sessions as $s)
+                                @forelse($data as $s)
                                 <tr>
                                     <td class="text-center fw-bold">{{ $loop->iteration }}</td>
 
-                                    <td>{{ \Carbon\Carbon::parse($s->start_date)->format('d M, Y') }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($s->end_date)->format('d M, Y') }}</td>
+                                    <td>{{ $s->name }}</td>
+                                    <!-- <td>{{ $s->father_name }}</td> -->
+                                    <td>{{ $s->rollnum }}</td>
+
                                     <td>
-                                        <small class="text-muted">
-                                            {{ Str::limit($s->description, 80) ?: '-' }}
-                                        </small>
+                                        <small class="text-muted">{{ $s->phone ?? '-' }}</small>
                                     </td>
-                                    <td class="text-center">
+
+                                    <td>
+                                        <span class="badge bg-success px-3">
+                                            Rs. {{ number_format($s->fees) }}
+                                        </span>
+                                    </td>
+
+                                    <td>
                                         @php
-                                        $now = \Carbon\Carbon::now();
-                                        $start = \Carbon\Carbon::parse($s->start_date);
-                                        $end = \Carbon\Carbon::parse($s->end_date);
+                                        $sp = $s->sessionProgram;
                                         @endphp
 
-                                        @if($now->between($start, $end))
-                                        <span class="badge bg-success rounded-pill px-3">Active</span>
-                                        @elseif($now->lt($start))
-                                        <span class="badge bg-warning text-dark rounded-pill px-3">Upcoming</span>
-                                        @else
-                                        <span class="badge bg-secondary rounded-pill px-3">Expired</span>
-                                        @endif
+                                        <small class="text-muted">
+                                            {{ $sp->session->start_date ?? '' }} -
+                                            {{ $sp->session->end_date ?? '' }}
+                                            /
+                                            {{ $sp->program->name ?? '' }}
+                                        </small>
                                     </td>
-                                    @canany(['session.update', 'session.delete'])
+
+                                    @canany(['student.update', 'student.delete'])
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
-                                            @can('session.update')
-                                            <a href="{{ route('sessions.edit', $s->id) }}"
+                                            @can('student.update')
+                                            <a href="{{ route('students.edit', $s->id) }}"
                                                 class="btn btn-warning btn-sm" title="Edit">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
                                             @endcan
-
-                                            @can('session.delete')
+                                            @can('student.delete')
                                             <button type="button" class="btn btn-danger btn-sm delete-btn"
-                                                data-id="{{ $s->id }}"
-                                                data-name="{{ $s->name ?? 'Session ' . $loop->iteration }}"
-                                                title="Delete">
+                                                data-id="{{ $s->id }}" data-name="{{ $s->name }}" title="Delete">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                             @endcan
@@ -110,7 +116,7 @@
 
                                         <!-- Hidden Delete Form -->
                                         <form id="delete-form-{{ $s->id }}"
-                                            action="{{ route('sessions.destroy', $s->id) }}" method="POST"
+                                            action="{{ route('students.destroy', $s->id) }}" method="POST"
                                             style="display:none;">
                                             @csrf
                                             @method('DELETE')
@@ -118,14 +124,15 @@
                                     </td>
                                     @endcan
                                 </tr>
+
                                 @empty
                                 <tr>
                                     <td colspan="7" class="text-center py-5 text-muted">
-                                        <i class="bi bi-calendar-x display-1 d-block mb-3"></i>
-                                        <h4>No sessions found</h4>
-                                        <p>Add your academic or fiscal year sessions here.</p>
-                                        <a href="{{ route('sessions.create') }}" class="btn btn-primary mt-3">
-                                            <i class="bi bi-plus-lg me-2"></i> Add First Session
+                                        <i class="bi bi-people display-1 d-block mb-3"></i>
+                                        <h4>No students found</h4>
+                                        <p>Add student records to manage enrollment.</p>
+                                        <a href="{{ route('students.create') }}" class="btn btn-primary mt-3">
+                                            <i class="bi bi-plus-lg me-2"></i> Add First Student
                                         </a>
                                     </td>
                                 </tr>
@@ -136,17 +143,18 @@
                 </div>
 
                 <!-- Pagination -->
-                @if (!isset($showAll) && $sessions->hasPages())
+                @if (!isset($showAll) && $data instanceof \Illuminate\Pagination\LengthAwarePaginator)
                 <div class="card-footer bg-light border-top">
-                    {{ $sessions->links('pagination::bootstrap-5') }}
+                    {{ $data->links('pagination::bootstrap-5') }}
                 </div>
                 @endif
+
             </div>
         </div>
     </div>
 </div>
 
-<!-- SweetAlert2 Delete Confirmation (same as programs) -->
+<!-- SweetAlert Delete Confirmation -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.querySelectorAll('.delete-btn').forEach(btn => {
@@ -156,7 +164,7 @@ document.querySelectorAll('.delete-btn').forEach(btn => {
 
         Swal.fire({
             title: 'Are you sure?',
-            text: `Delete session "${name}"? This cannot be undone!`,
+            text: `Delete student "${name}"? This cannot be undone!`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',

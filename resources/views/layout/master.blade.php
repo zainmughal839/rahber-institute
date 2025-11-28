@@ -159,6 +159,43 @@
     });
     </script>
 
+
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        let select = document.getElementById('session_program_id');
+        if (!select) return;
+
+        function loadSPInfo(spId) {
+            if (!spId) return;
+
+            fetch("{{ url('session-program-info') }}/" + spId)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('auto_fee').value = data.fees;
+                    document.getElementById('fees').value = data.fees;
+                    document.getElementById('total_seats').value = data.seats;
+                    document.getElementById('available_seats').value = data.available_seats;
+                })
+                .catch(err => console.error(err));
+        }
+
+        // On change
+        select.addEventListener('change', function() {
+            loadSPInfo(this.value);
+        });
+
+        // If editing, auto load selected SP
+        @if(isset($student))
+        loadSPInfo("{{ $student->session_program_id }}");
+        @endif
+
+    });
+    </script>
+
+
+
 </body>
 
 </html>

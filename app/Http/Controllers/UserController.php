@@ -28,7 +28,7 @@ class UserController extends Controller
 
     public function create()
     {
-        $roles = Role::all(); // Fetch all roles for dropdown
+        $roles = Role::all();
 
         return view('users.create', compact('roles'));
     }
@@ -39,16 +39,20 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'role_id' => 'required|exists:roles,id', // ye add kar do validation
+            'role_id' => 'required|exists:roles,id',
         ]);
 
         $data['password'] = Hash::make($data['password']);
+
         $user = $this->users->create($data);
 
-        // Role assign
-        $user->roles()->sync([$request->role_id]); // ya $data['role_id']
+        // Get role name from ID
+        $roleName = \Spatie\Permission\Models\Role::find($request->role_id)->name;
 
-        return redirect()->route('users.index')->with('success', 'User created with role!');
+        // Assign role
+        $user->assignRole($roleName);
+
+        return redirect()->back()->with('success', 'User Created successfully.');
     }
 
     public function edit($id)
@@ -68,26 +72,26 @@ class UserController extends Controller
 
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => [
-                'required', 'email', 'max:255',
-                Rule::unique('users')->ignore($user->id),
-            ],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8|confirmed',
-            'role_id' => 'required|exists:roles,id', // Validate role_id
+            'role_id' => 'required|exists:roles,id',
         ]);
 
-        if (empty($data['password'])) {
-            unset($data['password']);
-        } else {
+        if (!empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
+        } else {
+            unset($data['password']);
         }
 
         $this->users->update($user->id, $data);
 
-        // Sync roles
-        $user->roles()->sync([$data['role_id']]);
+        // Get role name from ID
+        $roleName = \Spatie\Permission\Models\Role::find($request->role_id)->name;
 
-        return redirect()->route('users.index')->with('success', 'User updated successfully.');
+        // Sync role
+        $user->syncRoles([$roleName]);
+
+        return redirect()->back()->with('success', 'updated User successfully.');
     }
 
     public function destroy($id)
@@ -98,7 +102,7 @@ class UserController extends Controller
         }
 
         // Detach roles before deleting
-        $user->roles()->detach();
+        $user->syncRoles([]);
         $this->users->delete($id);
 
         return redirect()->route('users.index')->with('success', 'User deleted successfully.');

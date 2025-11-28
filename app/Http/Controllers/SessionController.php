@@ -36,7 +36,7 @@ class SessionController extends Controller
 
         $this->sessionRepo->create($request->all());
 
-        return redirect()->route('sessions.index')->with('success', 'Session created successfully.');
+        return redirect()->back()->with('success', 'Session created successfully.');
     }
 
     public function edit($id)
@@ -56,7 +56,7 @@ class SessionController extends Controller
 
         $this->sessionRepo->update($id, $request->all());
 
-        return redirect()->route('sessions.index')->with('success', 'Session updated successfully.');
+        return redirect()->back()->with('success', 'updated session successfully.');
     }
 
     public function destroy($id)

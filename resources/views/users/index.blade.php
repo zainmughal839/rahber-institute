@@ -28,9 +28,11 @@
                             </span>
                         </h3>
                         <div class="card-tools">
+                            @can('user.create')
                             <a href="{{ route('users.create') }}" class="btn btn-light btn-sm shadow-sm">
                                 <i class="bi bi-person-plus me-1"></i> Add New User
                             </a>
+                            @endcan
                         </div>
                     </div>
                 </div>

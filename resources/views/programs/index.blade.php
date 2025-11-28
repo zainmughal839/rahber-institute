@@ -25,9 +25,11 @@
 
                         </h3>
                         <div class="card-tools">
+                            @can('program.create')
                             <a href="{{ route('programs.create') }}" class="btn btn-light btn-sm shadow-sm me-2">
                                 <i class="bi bi-plus-circle me-1"></i> Add New Program
                             </a>
+                            @endcan
                             @if(isset($showAll))
                             <a href="{{ route('programs.index') }}" class="btn btn-outline-light btn-sm">
                                 <i class="bi bi-arrow-left-circle"></i> Back to Paginated
@@ -52,7 +54,10 @@
                                     <th width="120">Short Name</th>
                                     <th width="130">Code</th>
                                     <th>Description</th>
+
+                                    @canany(['program.update', 'program.delete'])
                                     <th width="120" class="text-center">Actions</th>
+                                    @endcan
                                 </tr>
                             </thead>
                             <tbody>
@@ -75,16 +80,22 @@
                                             {{ Str::limit($p->description, 80) ?: '-' }}
                                         </small>
                                     </td>
+
+                                    @canany(['program.update', 'program.delete'])
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
+                                            @can('program.update')
                                             <a href="{{ route('programs.edit', $p->id) }}"
                                                 class="btn btn-warning btn-sm" title="Edit">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
+                                            @endcan
+                                            @can('program.delete')
                                             <button type="button" class="btn btn-danger btn-sm delete-btn"
                                                 data-id="{{ $p->id }}" data-name="{{ $p->name }}" title="Delete">
                                                 <i class="bi bi-trash"></i>
                                             </button>
+                                            @endcan
                                         </div>
 
                                         <!-- Hidden Delete Form -->
@@ -95,6 +106,7 @@
                                             @method('DELETE')
                                         </form>
                                     </td>
+                                    @endcan
                                 </tr>
                                 @empty
                                 <tr>
