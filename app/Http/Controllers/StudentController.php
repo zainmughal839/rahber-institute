@@ -57,7 +57,9 @@ class StudentController extends Controller
         $lastNumber = $lastStudent ? intval(substr($lastStudent->rollnum, 4)) : 0;
         $nextRoll = $yearMonth.str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
 
-        return view('students.create_step1', compact('nextRoll'));
+        $categories = \App\Models\StuCategory::all();
+
+        return view('students.create_step1', compact('nextRoll', 'categories'));
     }
 
     /**
@@ -73,6 +75,7 @@ class StudentController extends Controller
             'email' => 'nullable|email|max:255',
             'address' => 'nullable|string',
             'description' => 'nullable|string',
+            'stu_category_id' => 'nullable|exists:stu_category,id',
         ]);
 
         // create student
@@ -208,7 +211,9 @@ class StudentController extends Controller
     {
         $student = $this->students->find($id);
 
-        return view('students.create_step1', compact('student'));
+        $categories = \App\Models\StuCategory::all();
+
+        return view('students.create_step1', compact('student', 'categories'));
     }
 
     public function update(Request $request, $id)
@@ -221,6 +226,7 @@ class StudentController extends Controller
             'email' => 'nullable|email|max:255',
             'address' => 'nullable|string',
             'description' => 'nullable|string',
+            'stu_category_id' => 'nullable|exists:stu_category,id',
         ]);
 
         $this->students->update($id, $validated);

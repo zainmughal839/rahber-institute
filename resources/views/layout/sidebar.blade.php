@@ -176,17 +176,32 @@ $currentRoute = Route::currentRouteName();
                 @endcan
 
 
-                @canany(['student.index', 'student.create'])
+                @canany(['student.index', 'student.create', 'teacher.index', 'teacher.create', 'stu_category.index',
+                'stu_category.create'])
                 <li class="nav-header">Student & Teacher</li>
-                <li class="nav-item {{ str_starts_with($currentRoute, 'students.') || str_starts_with($currentRoute, 'teachers.') ? 'menu-open' : '' }}">
+                <li
+                    class="nav-item {{ str_starts_with($currentRoute, 'students.') || str_starts_with($currentRoute, 'teachers.') || str_starts_with($currentRoute, 'stu-category.') ? 'menu-open' : '' }}">
                     <a href="#" class="nav-link">
                         <i class="nav-icon bi bi-box-seam-fill"></i>
                         <p>Student & Teacher <i class="nav-arrow bi bi-chevron-right"></i></p>
                     </a>
 
 
+
                     <ul class="nav nav-treeview">
-                        <!-- Student Fee List -->
+
+
+                        @can('stu_category.index')
+                        <li class="nav-item">
+                            <a href="{{ route('stu-category.index') }}"
+                                class="nav-link {{ $currentRoute === 'stu-category.index' ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-collection"></i>
+                                <p>Student Category</p>
+                            </a>
+                        </li>
+                        @endcan
+
+
                         @can('student.create')
                         <li class="nav-item">
                             <a href="{{ route('students.create') }}"
@@ -220,41 +235,36 @@ $currentRoute = Route::currentRouteName();
                         </li>
                         @endcan
 
-@can('teacher.create')
-  <li class="nav-item">
-                    <a href="{{ route('teachers.create') }}"
-                        class="nav-link {{ $currentRoute === 'teachers.create' ? 'active' : '' }}">
-                        <i class="bi bi-circle nav-icon"></i>
-                        <p>Add Teacher</p>
-                    </a>
-                </li>
-@endcan
+                        @can('teacher.create')
+                        <li class="nav-item">
+                            <a href="{{ route('teachers.create') }}"
+                                class="nav-link {{ $currentRoute === 'teachers.create' ? 'active' : '' }}">
+                                <i class="bi bi-circle nav-icon"></i>
+                                <p>Add Teacher</p>
+                            </a>
+                        </li>
+                        @endcan
 
 
-@can('teacher.index')
-                <li class="nav-item">
-                    <a href="{{ route('teachers.index') }}"
-                        class="nav-link {{ $currentRoute === 'teachers.index' ? 'active' : '' }}">
-                        <i class="bi bi-circle nav-icon"></i>
-                        <p>All Teacher</p>
-                    </a>
-                </li>
-                @endcan
+                        @can('teacher.index')
+                        <li class="nav-item">
+                            <a href="{{ route('teachers.index') }}"
+                                class="nav-link {{ $currentRoute === 'teachers.index' ? 'active' : '' }}">
+                                <i class="bi bi-circle nav-icon"></i>
+                                <p>All Teacher</p>
+                            </a>
+                        </li>
+                        @endcan
 
-                @canany('teacher.index')
-<li class="nav-item">
-    <a href="{{ route('teachers.all_ledger') }}"
-       class="nav-link {{ $currentRoute === 'teachers.all_ledger' ? 'active' : '' }}">
-        <i class="bi bi-circle nav-icon"></i>
-        <p>Teachers Ledger</p>
-    </a>
-</li>
-@endcanany
-
-
-
-
-
+                        @canany('teacher.index')
+                        <li class="nav-item">
+                            <a href="{{ route('teachers.all_ledger') }}"
+                                class="nav-link {{ $currentRoute === 'teachers.all_ledger' ? 'active' : '' }}">
+                                <i class="bi bi-circle nav-icon"></i>
+                                <p>Teachers Ledger</p>
+                            </a>
+                        </li>
+                        @endcan
 
                     </ul>
                 </li>
@@ -269,7 +279,8 @@ $currentRoute = Route::currentRouteName();
                         <p>Profile Setting</p>
                     </a>
                 </li>
-              
+
+
 
 
             </ul>

@@ -7,6 +7,7 @@ use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SessionProgramController;
+use App\Http\Controllers\StuCategoryController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
@@ -220,7 +221,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/students/ledger/all', [StudentController::class, 'allAllLedger'])->name('students.ledger.all');
 
     // // Teacher
-
     Route::get('/teachers', [TeacherController::class, 'index'])
     ->middleware('permission:teacher.index')
         ->name('teachers.index');
@@ -246,9 +246,9 @@ Route::middleware('auth')->group(function () {
         ->name('teachers.destroy');
 
     Route::get('/teachers/{id}', [TeacherController::class, 'show'])
-    ->middleware('permission:teacher.index') // Add permission if needed
+    ->middleware('permission:teacher.index')
     ->name('teachers.show');
-    // Teacher Ledger
+
     Route::get('/teachers/{id}/ledger', [TeacherController::class, 'ledger'])
         ->middleware('permission:teacher.index')
         ->name('teachers.ledger');
@@ -256,4 +256,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/teachers/ledger/all', [TeacherController::class, 'allLedger'])
     ->middleware('permission:teacher.index')
     ->name('teachers.all_ledger');
+
+    // Student Category
+
+    Route::resource('stu-category', StuCategoryController::class);
 });

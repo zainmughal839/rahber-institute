@@ -82,6 +82,22 @@
                             value="{{ old('address', $student->address ?? '') }}">
                     </div>
 
+                    {{-- Student Category --}}
+                    <div class="col-md-6">
+                        <label class="form-label">Student Category</label>
+                        <select name="stu_category_id" class="form-control">
+                            <option value="">-- Select Category --</option>
+
+                            @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}"
+                                {{ old('stu_category_id', $student->stu_category_id ?? '') == $cat->id ? 'selected' : '' }}>
+                                {{ $cat->name }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+
                     {{-- Description --}}
                     <div class="col-12">
                         <label class="form-label">Description</label>

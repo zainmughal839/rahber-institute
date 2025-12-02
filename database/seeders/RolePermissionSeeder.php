@@ -41,6 +41,12 @@ class RolePermissionSeeder extends Seeder
             'teacher.update',
             'teacher.delete',
 
+            // Student Category
+            'stu_category.index',
+            'stu_category.create',
+            'stu_category.update',
+            'stu_category.delete',
+
             // ROLES
             'role.index',
             'role.create',

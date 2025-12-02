@@ -14,9 +14,15 @@ class Student extends Model
         'email',
         'address',
         'description',
+        'stu_category_id',
         'rollnum',
         'session_program_id',
     ];
+
+    public function category()
+    {
+        return $this->belongsTo(StuCategory::class, 'stu_category_id');
+    }
 
     public function sessionProgram()
     {
