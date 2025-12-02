@@ -1,4 +1,3 @@
-{{-- resources/views/students/index.blade.php --}}
 @extends('layout.master')
 
 @section('content')
@@ -58,7 +57,7 @@
                                     <!-- <th width="200">Father Name</th> -->
                                     <th width="200">Roll num</th>
                                     <th width="150">Phone</th>
-                                    <th width="150">Fee</th>
+                                    <!-- <th width="150">Fee</th> -->
                                     <th width="220">Session - Program</th>
                                     @canany(['student.update', 'student.delete'])
                                     <th width="120" class="text-center">Actions</th>
@@ -69,8 +68,13 @@
                                 @forelse($data as $s)
                                 <tr>
                                     <td class="text-center fw-bold">{{ $loop->iteration }}</td>
-
+                                    <!-- <td>
+                                        <a href="{{ route('students.ledger', $s->id) }}" class="text-primary fw-bold">
+                                            {{ $s->name }}
+                                        </a>
+                                    </td> -->
                                     <td>{{ $s->name }}</td>
+
                                     <!-- <td>{{ $s->father_name }}</td> -->
                                     <td>{{ $s->rollnum }}</td>
 
@@ -78,11 +82,11 @@
                                         <small class="text-muted">{{ $s->phone ?? '-' }}</small>
                                     </td>
 
-                                    <td>
+                                    <!-- <td>
                                         <span class="badge bg-success px-3">
                                             Rs. {{ number_format($s->fees) }}
                                         </span>
-                                    </td>
+                                    </td> -->
 
                                     <td>
                                         @php

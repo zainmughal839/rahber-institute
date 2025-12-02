@@ -1,8 +1,8 @@
-<!---- 
-    Project: Rahber Institute 
+<!----
+    Project: Rahber Institute
     Developed By: Zain Mughal
     Email: zaindeveloper23@gmail.com
-    Phone: 0325-8606798
+    Phone: +92325-8606798
 ---->
 
 <!DOCTYPE html>
@@ -161,39 +161,41 @@
 
 
 
+    <!-- student create  -->
     <script>
     document.addEventListener('DOMContentLoaded', function() {
 
         let select = document.getElementById('session_program_id');
-        if (!select) return;
+        let feesInput = document.getElementById('fees');
+
+        if (!select || !feesInput) return;
+
+        // Check if editing existing value
+        let existingFees = "{{ $student->fees_amount ?? '' }}";
+
+        // ✔ If editing and fees already exist → DO NOT auto-load fees
+        let allowAutoLoad = (existingFees === "" || existingFees === "0");
 
         function loadSPInfo(spId) {
-            if (!spId) return;
+            if (!spId || !allowAutoLoad) return; // 🚫 Stop auto-load if editing existing fees
 
             fetch("{{ url('session-program-info') }}/" + spId)
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById('auto_fee').value = data.fees;
-                    document.getElementById('fees').value = data.fees;
-                    document.getElementById('total_seats').value = data.seats;
-                    document.getElementById('available_seats').value = data.available_seats;
+                    feesInput.value = data.fees;
                 })
                 .catch(err => console.error(err));
         }
 
-        // On change
+        // Only auto-load when new assignment (not edit)
         select.addEventListener('change', function() {
             loadSPInfo(this.value);
         });
 
-        // If editing, auto load selected SP
-        @if(isset($student))
-        loadSPInfo("{{ $student->session_program_id }}");
-        @endif
-
     });
     </script>
 
+    <!-- teacher create -->
 
 
 </body>

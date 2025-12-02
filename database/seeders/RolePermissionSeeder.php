@@ -35,6 +35,12 @@ class RolePermissionSeeder extends Seeder
             'student.update',
             'student.delete',
 
+            // teacher
+            'teacher.index',
+            'teacher.create',
+            'teacher.update',
+            'teacher.delete',
+
             // ROLES
             'role.index',
             'role.create',
@@ -88,6 +94,12 @@ class RolePermissionSeeder extends Seeder
  *  Step 2 — Run RolePermission Seeder
  *  ----------------------------------------
  *  php artisan db:seed --class=RolePermissionSeeder
+ *
+ *  --------------------------------------------
+ *   GitHub Upload Commit
+ *   git add .
+ *   git commit -m "Your update message"
+ *   git push
  *
  * ------------------------------------------------------------
  */

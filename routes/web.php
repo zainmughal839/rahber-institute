@@ -8,6 +8,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SessionProgramController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -57,8 +58,8 @@ Route::middleware('auth')->group(function () {
         ->name('sessions.destroy');
 
     Route::get('/sessions/index', [SessionController::class, 'index'])
-    ->middleware('permission:session.index')
-    ->name('sessions.index');
+        ->middleware('permission:session.index')
+        ->name('sessions.index');
 
     //  ======================= Program ==========================================
     Route::get('/programs/all', [ProgramController::class, 'all'])->name('programs.all');
@@ -89,8 +90,8 @@ Route::middleware('auth')->group(function () {
         ->name('programs.destroy');
 
     Route::get('/programs/index', [ProgramController::class, 'index'])
-    ->middleware('permission:program.index')
-    ->name('programs.index');
+        ->middleware('permission:program.index')
+        ->name('programs.index');
 
     // Session + Program Assignment
     Route::get('/session_program/all', [SessionProgramController::class, 'index'])
@@ -204,7 +205,55 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:student.delete')
         ->name('students.destroy');
 
-    // SessionProgram info (AJAX)
     Route::get('/session-program-info/{id}', [StudentController::class, 'getSessionProgramInfo'])
         ->name('session-program.info');
+
+    Route::get('/students/{student}/assign', [StudentController::class, 'showAssignForm'])
+        ->name('students.assign.form');
+
+    Route::post('/students/{student}/assign', [StudentController::class, 'assignSessionProgram'])
+        ->name('students.assign');
+
+    // Student Ledger
+    Route::get('/students/{student}/ledger', [StudentController::class, 'ledger'])
+        ->name('students.ledger');
+    Route::get('/students/ledger/all', [StudentController::class, 'allAllLedger'])->name('students.ledger.all');
+
+    // // Teacher
+
+    Route::get('/teachers', [TeacherController::class, 'index'])
+    ->middleware('permission:teacher.index')
+        ->name('teachers.index');
+
+    Route::get('/teachers/create', [TeacherController::class, 'create'])
+    ->middleware('permission:teacher.create')
+        ->name('teachers.create');
+
+    Route::post('/teachers', [TeacherController::class, 'store'])
+    ->middleware('permission:teacher.create')
+        ->name('teachers.store');
+
+    Route::get('/teachers/{id}/edit', [TeacherController::class, 'edit'])
+    ->middleware('permission:teacher.update')
+        ->name('teachers.edit');
+
+    Route::put('/teachers/{id}', [TeacherController::class, 'update'])
+    ->middleware('permission:teacher.update')
+        ->name('teachers.update');
+
+    Route::delete('/teachers/{id}', [TeacherController::class, 'destroy'])
+    ->middleware('permission:teacher.delete')
+        ->name('teachers.destroy');
+
+    Route::get('/teachers/{id}', [TeacherController::class, 'show'])
+    ->middleware('permission:teacher.index') // Add permission if needed
+    ->name('teachers.show');
+    // Teacher Ledger
+    Route::get('/teachers/{id}/ledger', [TeacherController::class, 'ledger'])
+        ->middleware('permission:teacher.index')
+        ->name('teachers.ledger');
+
+    Route::get('/teachers/ledger/all', [TeacherController::class, 'allLedger'])
+    ->middleware('permission:teacher.index')
+    ->name('teachers.all_ledger');
 });

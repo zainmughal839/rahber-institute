@@ -53,6 +53,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PermissionRepositoryInterface::class, PermissionRepository::class);
 
         $this->app->bind(StudentRepositoryInterface::class, StudentRepository::class);
+
+        // in App\Providers\AppServiceProvider::register()
+        $this->app->bind(
+            \App\Repositories\Interfaces\TeacherRepositoryInterface::class,
+            \App\Repositories\Eloquent\TeacherRepository::class
+        );
     }
 
     /**
