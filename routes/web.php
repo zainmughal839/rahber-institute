@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ClassSubjectController;
+use App\Http\Controllers\ClassTeacherController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgramController;
@@ -9,6 +11,7 @@ use App\Http\Controllers\SessionController;
 use App\Http\Controllers\SessionProgramController;
 use App\Http\Controllers\StuCategoryController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -94,12 +97,11 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:program.index')
         ->name('programs.index');
 
-    // Session + Program Assignment
+    //  ======================= Session & Program ==========================================
     Route::get('/session_program/all', [SessionProgramController::class, 'index'])
         ->middleware('permission:session_program.index')
         ->name('session_program.all');
 
-    // Standard CRUD
     Route::get('/session_program', [SessionProgramController::class, 'index'])
         ->middleware('permission:session_program.index')
         ->name('session_program.index');
@@ -124,7 +126,7 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:session_program.delete')
         ->name('session_program.destroy');
 
-    // Users CRUD with permissions
+    //  ======================= User ==========================================
     Route::get('/users', [UserController::class, 'index'])
         ->middleware('permission:user.index')
         ->name('users.index');
@@ -153,7 +155,7 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:user.index') // viewing user requires index permission
         ->name('users.show');
 
-    // Roles CRUD with permissions
+    //  ======================= Role ==========================================
     Route::get('/roles', [RoleController::class, 'index'])
         ->middleware('permission:role.index')
         ->name('roles.index');
@@ -178,10 +180,10 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:role.delete')
         ->name('roles.destroy');
 
-    // Permissions
+    //  ======================= Permissions ==========================================
     Route::get('permissions', [PermissionController::class, 'index'])->name('permissions.index');
 
-    // Students
+    //  ======================= Student ==========================================
     Route::get('/students', [StudentController::class, 'index'])
         ->middleware('permission:student.index')
         ->name('students.index');
@@ -220,7 +222,7 @@ Route::middleware('auth')->group(function () {
         ->name('students.ledger');
     Route::get('/students/ledger/all', [StudentController::class, 'allAllLedger'])->name('students.ledger.all');
 
-    // // Teacher
+    //  ======================= Teacher ==========================================
     Route::get('/teachers', [TeacherController::class, 'index'])
     ->middleware('permission:teacher.index')
         ->name('teachers.index');
@@ -257,7 +259,49 @@ Route::middleware('auth')->group(function () {
     ->middleware('permission:teacher.index')
     ->name('teachers.all_ledger');
 
-    // Student Category
+    //  ======================= Student Category ==========================================
 
     Route::resource('stu-category', StuCategoryController::class);
+
+    //  ======================= Subject ==========================================
+    Route::resource('subjects', SubjectController::class);
+
+    //  ======================= Class Subject ==========================================
+    Route::prefix('class-subjects')->name('class-subjects.')->group(function () {
+        Route::get('/', [ClassSubjectController::class, 'index'])->name('index');
+        Route::get('/all', [ClassSubjectController::class, 'all'])->name('all');
+        Route::get('/create', [ClassSubjectController::class, 'create'])->name('create');
+        Route::post('/', [ClassSubjectController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [ClassSubjectController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [ClassSubjectController::class, 'update'])->name('update');
+        Route::delete('/{id}', [ClassSubjectController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::get('class-teacher/all', [ClassTeacherController::class, 'all'])->name('class-teacher.all');
+    Route::resource('class-teacher', ClassTeacherController::class)->except(['show']);
+    Route::get('class-teacher/{id}/show', [ClassTeacherController::class, 'show'])
+    ->name('class-teacher.show');
 });
+
+/*
+ * ------------------------------------------------------------
+ *  Routes half ki permisison routes main haia ur half ki
+ *  controller ki file main ok.
+ *  Author:  Zain Mughal
+ *  Phone: +92 3258606798
+ * ------------------------------------------------------------
+ *
+ *  Step 1 — Clear All Caches
+ *  ----------------------------------------
+ *  php artisan cache:clear
+ *  php artisan config:clear
+ *  php artisan permission:cache-reset
+ *
+ *  --------------------------------------------
+ *   GitHub Upload Commit
+ *   git add .
+ *   git commit -m "Your update message"
+ *   git push
+ *
+ * ------------------------------------------------------------
+ */

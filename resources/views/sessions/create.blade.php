@@ -56,6 +56,25 @@
                     <div class="card-body">
                         <div class="row g-4">
 
+                            <!-- Session Name -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label fw-semibold">
+                                        Session Name <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" name="sessions_name"
+                                        class="form-control @error('sessions_name') is-invalid @enderror"
+                                        placeholder="e.g. Session 2024-2025"
+                                        value="{{ old('sessions_name', isset($session) ? $session->sessions_name : '') }}"
+                                        required>
+
+                                    @error('sessions_name')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+
                             <!-- Start Date -->
                             <div class="col-md-6">
                                 <div class="form-group">

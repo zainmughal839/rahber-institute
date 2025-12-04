@@ -57,17 +57,21 @@
                                     <select name="session_id"
                                         class="form-control @error('session_id') is-invalid @enderror" required>
                                         <option value="">-- Choose Session --</option>
+
                                         @foreach($sessions as $s)
                                         <option value="{{ $s->id }}"
                                             {{ (old('session_id', $item->session_id ?? '') == $s->id) ? 'selected' : '' }}>
 
-                                            {{ \Carbon\Carbon::parse($s->start_date)->format('d M Y') }}
+                                            {{ $s->sessions_name }}
+                                            — ({{ \Carbon\Carbon::parse($s->start_date)->format('d M Y') }}
                                             to
-                                            {{ \Carbon\Carbon::parse($s->end_date)->format('d M Y') }}
-                                            @if($s->description) — {{ Str::limit($s->description, 30) }} @endif
+                                            {{ \Carbon\Carbon::parse($s->end_date)->format('d M Y') }})
+
+
                                         </option>
                                         @endforeach
                                     </select>
+
                                     @error('session_id')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                     @enderror

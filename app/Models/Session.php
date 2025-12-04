@@ -9,11 +9,10 @@ class Session extends Model
 {
     use HasFactory;
 
-    // Table name
     protected $table = 'sessions_p';
 
-    // Fillable fields
     protected $fillable = [
+        'sessions_name',
         'start_date',
         'end_date',
         'description',

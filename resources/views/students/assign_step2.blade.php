@@ -34,13 +34,17 @@
                             <option value="">-- Select Session Program --</option>
                             @foreach($sessionPrograms as $sp)
                             <option value="{{ $sp->id }}"
-                                {{ $student->session_program_id == $sp->id ? 'selected' : '' }}>
-                                {{ $sp->session->start_date }} - {{ $sp->session->end_date }}
-                                ({{ $sp->program->name }})
+                                {{ isset($student) && $student->session_program_id == $sp->id ? 'selected' : '' }}>
+
+                                {{ $sp->session->sessions_name ?? 'N/A' }} |
+                                {{ \Carbon\Carbon::parse($sp->session->start_date)->format('d M, Y') }} -
+                                {{ \Carbon\Carbon::parse($sp->session->end_date)->format('d M, Y') }} |
+                                ({{ $sp->program->name ?? 'N/A' }})
                             </option>
                             @endforeach
                         </select>
                     </div>
+
 
                     <div class="col-md-6">
                         <label>Total Fees *</label>

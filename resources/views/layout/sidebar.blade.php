@@ -95,85 +95,7 @@ $currentRoute = Route::currentRouteName();
 
 
 
-                @canany(['role.index', 'role.create', 'user.index', 'user.create'])
-                <li class="nav-header">Role & Permission</li>
 
-                <li class="nav-item {{ request()->is('users*', 'roles*') ? 'menu-open' : '' }}">
-                    <a href="#" class="nav-link {{ request()->is('users*', 'roles*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-shield-lock"></i>
-                        <p>
-                            Role & Permission
-                            <i class="nav-arrow bi bi-chevron-right"></i>
-                        </p>
-                    </a>
-                    <ul class="nav nav-treeview">
-                        <!-- Users -->
-                        @canany(['user.index', 'user.create'])
-                        <li class="nav-item {{ request()->is('users*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->is('users*') ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-people-fill"></i>
-                                <p>
-                                    Users
-                                    <i class="nav-arrow bi bi-chevron-right"></i>
-                                </p>
-                            </a>
-                            <ul class="nav nav-treeview">
-
-                                @can('user.index')
-                                <li class="nav-item">
-                                    <a href="{{ route('users.index') }}" class="nav-link">
-                                        <i class="bi bi-people nav-icon"></i>
-                                        <p>All Users</p>
-                                    </a>
-                                </li>
-                                @endcan
-
-                                @can('user.create')
-                                <li class="nav-item">
-                                    <a href="{{ route('users.create') }}" class="nav-link">
-                                        <i class="bi bi-circle nav-icon"></i>
-                                        <p>Add User</p>
-                                    </a>
-                                </li>
-                                @endcan
-                            </ul>
-                        </li>
-                        @endcan
-                        <!-- Roles -->
-                        @canany(['role.index', 'role.create'])
-                        <li class="nav-item {{ request()->is('roles*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->is('roles*') ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-key-fill"></i>
-                                <p>
-                                    Roles
-                                    <i class="nav-arrow bi bi-chevron-right"></i>
-                                </p>
-                            </a>
-
-                            <ul class="nav nav-treeview">
-                                @can('role.index')
-                                <li class="nav-item">
-                                    <a href="{{ route('roles.index') }}" class="nav-link">
-                                        <i class="bi bi-key nav-icon"></i>
-                                        <p>All Roles</p>
-                                    </a>
-                                </li>
-                                @endcan
-
-                                @can('role.create')
-                                <li class="nav-item">
-                                    <a href="{{ route('roles.create') }}" class="nav-link">
-                                        <i class="bi bi-circle nav-icon"></i>
-                                        <p>Create Role</p>
-                                    </a>
-                                </li>
-                                @endcan
-                            </ul>
-                        </li>
-                        @endcan
-                    </ul>
-                </li>
-                @endcan
 
 
                 @canany(['student.index', 'student.create', 'teacher.index', 'teacher.create', 'stu_category.index',
@@ -270,6 +192,138 @@ $currentRoute = Route::currentRouteName();
                 </li>
                 @endcan
 
+
+
+                @canany(['subject.index', 'subject.create', 'class-subject.index', 'class-teacher.index',
+                'class-teacher.create'])
+                <li class="nav-header">Teacher classes</li>
+                <li
+                    class="nav-item {{ str_starts_with($currentRoute, 'subjects.') || str_starts_with($currentRoute, 'class-subjects.') || str_starts_with($currentRoute, 'class-teacher.') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon bi bi-box-seam-fill"></i>
+                        <p>Teacher Assign class <i class="nav-arrow bi bi-chevron-right"></i></p>
+                    </a>
+
+
+
+                    <ul class="nav nav-treeview">
+
+                        @can('subject.index')
+                        <li class="nav-item">
+                            <a href="{{ route('subjects.index') }}"
+                                class="nav-link {{ $currentRoute === 'subjects.index' ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-book"></i>
+                                <p>Books / Subjects</p>
+                            </a>
+                        </li>
+                        @endcan
+
+                        @can('class-subject.index')
+                        <li class="nav-item">
+                            <a href="{{ route('class-subjects.index') }}"
+                                class="nav-link {{ $currentRoute === 'class-subjects.index' ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-circle"></i>
+                                <p>Subject assign Session</p>
+                            </a>
+                        </li>
+                        @endcan
+
+
+                        @can('class-teacher.index')
+                        <li class="nav-item">
+                            <a href="{{ route('class-teacher.index') }}"
+                                class="nav-link {{ $currentRoute === 'class-teacher.index' ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-circle"></i>
+                                <p>Class Assign Teacher</p>
+                            </a>
+                        </li>
+                        @endcan
+
+                    </ul>
+                </li>
+                @endcan
+
+
+                @canany(['role.index', 'role.create', 'user.index', 'user.create'])
+                <li class="nav-header">Role & Permission</li>
+
+                <li class="nav-item {{ request()->is('users*', 'roles*') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link {{ request()->is('users*', 'roles*') ? 'active' : '' }}">
+                        <i class="nav-icon bi bi-shield-lock"></i>
+                        <p>
+                            Role & Permission
+                            <i class="nav-arrow bi bi-chevron-right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <!-- Users -->
+                        @canany(['user.index', 'user.create'])
+                        <li class="nav-item {{ request()->is('users*') ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ request()->is('users*') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-people-fill"></i>
+                                <p>
+                                    Users
+                                    <i class="nav-arrow bi bi-chevron-right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+
+                                @can('user.index')
+                                <li class="nav-item">
+                                    <a href="{{ route('users.index') }}" class="nav-link">
+                                        <i class="bi bi-people nav-icon"></i>
+                                        <p>All Users</p>
+                                    </a>
+                                </li>
+                                @endcan
+
+                                @can('user.create')
+                                <li class="nav-item">
+                                    <a href="{{ route('users.create') }}" class="nav-link">
+                                        <i class="bi bi-circle nav-icon"></i>
+                                        <p>Add User</p>
+                                    </a>
+                                </li>
+                                @endcan
+                            </ul>
+                        </li>
+                        @endcan
+                        <!-- Roles -->
+                        @canany(['role.index', 'role.create'])
+                        <li class="nav-item {{ request()->is('roles*') ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ request()->is('roles*') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-key-fill"></i>
+                                <p>
+                                    Roles
+                                    <i class="nav-arrow bi bi-chevron-right"></i>
+                                </p>
+                            </a>
+
+                            <ul class="nav nav-treeview">
+                                @can('role.index')
+                                <li class="nav-item">
+                                    <a href="{{ route('roles.index') }}" class="nav-link">
+                                        <i class="bi bi-key nav-icon"></i>
+                                        <p>All Roles</p>
+                                    </a>
+                                </li>
+                                @endcan
+
+                                @can('role.create')
+                                <li class="nav-item">
+                                    <a href="{{ route('roles.create') }}" class="nav-link">
+                                        <i class="bi bi-circle nav-icon"></i>
+                                        <p>Create Role</p>
+                                    </a>
+                                </li>
+                                @endcan
+                            </ul>
+                        </li>
+                        @endcan
+                    </ul>
+                </li>
+                @endcan
+
                 <li class="nav-header">Settings</li>
                 <!-- Profile Setting -->
                 <li class="nav-item">
@@ -279,6 +333,10 @@ $currentRoute = Route::currentRouteName();
                         <p>Profile Setting</p>
                     </a>
                 </li>
+
+
+
+
 
 
 

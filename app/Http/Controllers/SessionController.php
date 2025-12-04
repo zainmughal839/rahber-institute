@@ -29,6 +29,7 @@ class SessionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'sessions_name' => 'required|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'description' => 'nullable|string',
@@ -39,16 +40,10 @@ class SessionController extends Controller
         return redirect()->back()->with('success', 'Session created successfully.');
     }
 
-    public function edit($id)
-    {
-        $session = $this->sessionRepo->find($id);
-
-        return view('sessions.create', compact('session'));
-    }
-
     public function update(Request $request, $id)
     {
         $request->validate([
+            'sessions_name' => 'required|string|max:255',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'description' => 'nullable|string',
@@ -56,7 +51,14 @@ class SessionController extends Controller
 
         $this->sessionRepo->update($id, $request->all());
 
-        return redirect()->back()->with('success', 'updated session successfully.');
+        return redirect()->back()->with('success', 'Updated session successfully.');
+    }
+
+    public function edit($id)
+    {
+        $session = $this->sessionRepo->find($id);
+
+        return view('sessions.create', compact('session'));
     }
 
     public function destroy($id)

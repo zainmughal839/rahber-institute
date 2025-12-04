@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
+use App\Repositories\Eloquent\ClassTeacherRepository;
 use App\Repositories\Eloquent\PermissionRepository;
 use App\Repositories\Eloquent\ProgramRepository;
 use App\Repositories\Eloquent\RoleRepository;
 use App\Repositories\Eloquent\SessionRepository;
 use App\Repositories\Eloquent\StudentRepository;
 use App\Repositories\Eloquent\UserRepository;
+use App\Repositories\Interfaces\ClassTeacherRepositoryInterface;
 use App\Repositories\Interfaces\PermissionRepositoryInterface;
 use App\Repositories\Interfaces\ProgramRepositoryInterface;
 use App\Repositories\Interfaces\RoleRepositoryInterface;
@@ -65,6 +67,20 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Interfaces\StuCategoryRepositoryInterface::class,
             \App\Repositories\Eloquent\StuCategoryRepository::class
         );
+
+        // subject
+        $this->app->bind(
+            \App\Repositories\Interfaces\SubjectRepositoryInterface::class,
+            \App\Repositories\Eloquent\SubjectRepository::class
+        );
+
+        // / subject + Session program
+        $this->app->bind(
+            \App\Repositories\Interfaces\ClassSubjectRepositoryInterface::class,
+            \App\Repositories\Eloquent\ClassSubjectRepository::class
+        );
+
+        $this->app->bind(ClassTeacherRepositoryInterface::class, ClassTeacherRepository::class);
     }
 
     /**

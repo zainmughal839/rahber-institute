@@ -84,9 +84,11 @@
 
                                     <!-- Session Date Range -->
                                     <td>
-                                        {{ \Carbon\Carbon::parse($program->session->start_date)->format('d M, Y') }}
+                                        {{ $program->session ? \Carbon\Carbon::parse($program->session->start_date)->format('d M, Y') : 'No Session' }}
+
                                         –
-                                        {{ \Carbon\Carbon::parse($program->session->end_date)->format('d M, Y') }}
+                                        {{ $program->session ? \Carbon\Carbon::parse($program->session->end_date)->format('d M, Y') : '-' }}
+
                                     </td>
 
                                     <td>
