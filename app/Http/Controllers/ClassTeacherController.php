@@ -61,7 +61,6 @@ class ClassTeacherController extends Controller
             'desc' => 'nullable|string',
         ]);
 
-        // prevent duplicates if needed (repository/create unique constraint exists in migration)
         $this->repo->store($request->only(['class_subjects_id', 'teacher_id', 'status', 'desc']));
 
         return redirect()->route('class-teacher.index')->with('success', 'Teacher assigned to class successfully.');

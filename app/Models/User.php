@@ -31,4 +31,11 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // App\Models\User.php
+
+    public function userAssignment()
+    {
+        return $this->hasOne(UserAssignment::class, 'user_id');
+    }
 }

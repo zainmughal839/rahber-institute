@@ -40,7 +40,6 @@
                         <tr>
                             <th width="60" class="text-center">#</th>
                             <th>Class</th>
-                            <th>Subject</th>
                             <th>Teacher</th>
                             <th>Status</th>
                             <th>Description</th>
@@ -57,7 +56,6 @@
                             </td>
 
                             <td>{{ $row->classSubject->class_name ?? '-' }}</td>
-                            <td>{{ $row->classSubject->subject->book_name ?? '-' }}</td>
                             <td>{{ $row->teacher->name ?? '-' }}</td>
 
                             <td class="text-center">

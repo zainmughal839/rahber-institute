@@ -15,14 +15,21 @@ class AuthController extends Controller
         $this->userRepo = $userRepo;
     }
 
+
+
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
 
-        $user = $this->userRepo->findByEmail($request->email);
-
-        if ($user && Auth::attempt($credentials)) {
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
             $request->session()->regenerate();
+
+            // Agar user ka assignment hai → yeh student/teacher hai → permissions disable kar do
+            $hasAssignment = $user->userAssignment()->exists();
+
+            // Session mein flag daal do
+            session(['is_panel_user' => $hasAssignment]);
 
             return redirect()->intended('/dashboard');
         }

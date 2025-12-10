@@ -16,8 +16,8 @@ use App\Repositories\Interfaces\RoleRepositoryInterface;
 use App\Repositories\Interfaces\SessionRepositoryInterface;
 use App\Repositories\Interfaces\StudentRepositoryInterface;
 use App\Repositories\Interfaces\UserRepositoryInterface;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -80,14 +80,34 @@ class AppServiceProvider extends ServiceProvider
             \App\Repositories\Eloquent\ClassSubjectRepository::class
         );
 
+        // class teacher
+
         $this->app->bind(ClassTeacherRepositoryInterface::class, ClassTeacherRepository::class);
+
+        // / user teacher assigment
+        $this->app->bind(
+            \App\Repositories\Interfaces\UserAssignmentRepositoryInterface::class,
+            \App\Repositories\Eloquent\UserAssignmentRepository::class
+        );
     }
 
     /**
      * Bootstrap any application services.
      */
+    // app/Providers/AuthServiceProvider.php
+
     public function boot()
     {
-        Schema::defaultStringLength(191);
+        $this->registerPolicies();
+
+        // Ye magic line — Student/Teacher ke liye Spatie permissions disable
+        Gate::before(function ($user, $ability) {
+            if (session('is_panel_user') === true) {
+                return false; // Sab @can = false → panel users ko kuch nahi dikhega
+            }
+
+            // Admin ke liye normal Spatie chalega
+            return null;
+        });
     }
 }

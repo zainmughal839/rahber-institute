@@ -23,7 +23,7 @@ class ClassSubjectController extends Controller
         $this->middleware('permission:class-subject.delete')->only('destroy');
     }
 
-    // Default paginated index
+    
     public function index()
     {
         $data = $this->classes->paginate(10);
@@ -32,10 +32,10 @@ class ClassSubjectController extends Controller
         return view('class_subjects.index', compact('data', 'showAll'));
     }
 
-    // Show all records without pagination
+    
     public function all()
     {
-        $data = $this->classes->all(); // All records
+        $data = $this->classes->all(); 
         $showAll = true;
 
         return view('class_subjects.index', compact('data', 'showAll'));

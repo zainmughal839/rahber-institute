@@ -277,10 +277,22 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}', [ClassSubjectController::class, 'destroy'])->name('destroy');
     });
 
+    // / class teacher
     Route::get('class-teacher/all', [ClassTeacherController::class, 'all'])->name('class-teacher.all');
     Route::resource('class-teacher', ClassTeacherController::class)->except(['show']);
     Route::get('class-teacher/{id}/show', [ClassTeacherController::class, 'show'])
     ->name('class-teacher.show');
+
+
+    //// USER ASSIGNMENTS
+    Route::resource('user-assignments', App\Http\Controllers\UserAssignmentController::class)->names([
+        'index' => 'user-assignments.index',
+        'create' => 'user-assignments.create',
+        'store' => 'user-assignments.store',
+        'edit' => 'user-assignments.edit',
+        'update' => 'user-assignments.update',
+        'destroy' => 'user-assignments.destroy',
+    ]);
 });
 
 /*

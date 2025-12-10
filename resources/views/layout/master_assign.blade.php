@@ -198,8 +198,106 @@
     <!-- teacher create -->
 
 
+    
+
+<script>
+// Already Assigned IDs
+const assignedStudentIds = @json(\App\Models\UserAssignment::where('panel_type', 'student')->pluck('assignable_id')->toArray());
+const assignedTeacherIds = @json(\App\Models\UserAssignment::where('panel_type', 'teacher')->pluck('assignable_id')->toArray());
+
+const students = @json($students->map(fn($s) => ['id' => $s->id, 'name' => $s->name, 'email' => $s->email ?? '']));
+const teachers = @json($teachers->map(fn($t) => ['id' => $t->id, 'name' => $t->name, 'email' => $t->email ?? '']));
+
+const currentPanel = "{{ old('panel_type', $assignment->panel_type ?? '') }}";
+const currentPersonId = "{{ old('assignable_id', $assignment->assignable_id ?? '') }}";
+
+const selectPerson = document.getElementById('assignable_select');
+const panelType = document.getElementById('panel_type');
+const emailField = document.getElementById('email');
+const typeField = document.getElementById('assignable_type');
+
+function populatePersons() {
+    const type = panelType.value;
+    selectPerson.innerHTML = '<option value="">-- Select Person --</option>';
+
+    let data = type === 'student' ? students : type === 'teacher' ? teachers : [];
+    let modelType = type === 'student' ? 'App\\\\Models\\\\Student' : 'App\\\\Models\\\\Teacher';
+    let assignedIds = type === 'student' ? assignedStudentIds : assignedTeacherIds;
+
+    data.forEach(person => {
+        if (assignedIds.includes(person.id) && person.id != currentPersonId) {
+            return; // Skip already assigned
+        }
+
+        const opt = document.createElement('option');
+        opt.value = person.id;
+        opt.textContent = person.name + (person.email ? ' - ' + person.email : '');
+        if (assignedIds.includes(person.id)) opt.textContent += ' (Already Assigned)';
+        opt.dataset.email = person.email;
+        opt.dataset.type = modelType;
+
+        if (currentPersonId && person.id == currentPersonId) {
+            opt.selected = true;
+            emailField.value = person.email || '';
+            typeField.value = modelType;
+        }
+        selectPerson.appendChild(opt);
+    });
+}
+
+panelType.addEventListener('change', populatePersons);
+selectPerson.addEventListener('change', function () {
+    const selected = this.options[this.selectedIndex];
+    emailField.value = selected.dataset.email || '';
+    typeField.value = selected.dataset.type || '';
+});
+
+// Password Features
+document.getElementById('generatePass')?.addEventListener('click', function () {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+    let pass = "";
+    for (let i = 0; i < 14; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+
+    document.getElementById('password').value = pass;
+    document.getElementById('plainPassword').textContent = pass;
+    document.getElementById('passwordBox').style.display = 'block';
+    document.getElementById('password').type = 'text';
+    document.getElementById('eyeIcon').classList.replace('bi-eye-slash', 'bi-eye');
+});
+
+document.getElementById('togglePass')?.addEventListener('click', function () {
+    const field = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+    field.type = field.type === 'password' ? 'text' : 'password';
+    icon.classList.toggle('bi-eye');
+    icon.classList.toggle('bi-eye-slash');
+});
+
+document.getElementById('copyBtn')?.addEventListener('click', function () {
+    navigator.clipboard.writeText(document.getElementById('plainPassword').textContent);
+});
+
+document.querySelectorAll('.toggle-old').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const input = this.previousElementSibling;
+        input.type = input.type === 'password' ? 'text' : 'password';
+        this.querySelector('i').classList.toggle('bi-eye');
+        this.querySelector('i').classList.toggle('bi-eye-slash');
+    });
+});
+
+document.querySelector('.copy-current')?.addEventListener('click', function () {
+    navigator.clipboard.writeText('{{ $assignment->plain_password ?? '' }}');
+});
+
+// On Load
+document.addEventListener('DOMContentLoaded', () => {
+    if (currentPanel) populatePersons();
+});
+</script>
 
 
+    
 
 </body>
 

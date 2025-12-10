@@ -61,20 +61,37 @@
             <table class="table table-bordered">
                 <tr>
                     <th style="width: 200px;">Class Name</th>
-                    <td>{{ $record->classSubject->class_name }}</td>
+                    <td>{{ $record->classSubject->class_name ?? '-' }}</td>
                 </tr>
-                <tr>
-                    <th>Subject</th>
-                    <td>{{ $record->classSubject->subject->book_name }}</td>
-                </tr>
-                <tr>
-                    <th>Subject Short Name</th>
-                    <td>{{ $record->classSubject->subject->book_short_name }}</td>
-                </tr>
-                <tr>
-                    <th>Description</th>
-                    <td>{{ $record->classSubject->desc ?? '-' }}</td>
-                </tr>
+               <tr>
+    <th>Subjects</th>
+    <td>
+        @if($record->classSubject && $record->classSubject->subjects->count())
+            {{ $record->classSubject->subjects->pluck('book_name')->implode(', ') }}
+        @else
+            -
+        @endif
+    </td>
+</tr>
+
+
+<tr>
+    <th>Subject Short Name</th>
+    <td>
+        @if($record->classSubject && $record->classSubject->subjects->count())
+            {{ $record->classSubject->subjects->pluck('book_short_name')->implode(', ') }}
+        @else
+            -
+        @endif
+    </td>
+</tr>
+
+
+<tr>
+    <th>Description</th>
+    <td>{{ $record->classSubject->desc ?? '-' }}</td>
+</tr>
+
             </table>
 
             <hr>
@@ -87,11 +104,11 @@
             <table class="table table-bordered">
                 <tr>
                     <th style="width: 200px;">Program</th>
-                    <td>{{ $record->classSubject->sessionProgram->program->name }}</td>
+                    <td>{{ $record->classSubject->sessionProgram->program->name  ?? '-' }}</td>
                 </tr>
                 <tr>
                     <th>Program Code</th>
-                    <td>{{ $record->classSubject->sessionProgram->program->program_code }}</td>
+                    <td>{{ $record->classSubject->sessionProgram->program->program_code ?? '-' }}</td>
                 </tr>
                 <tr>
                     <th>Session Start</th>
@@ -100,7 +117,7 @@
                 </tr>
                 <tr>
                     <th>Session End</th>
-                    <td>{{ \Carbon\Carbon::parse($record->classSubject->sessionProgram->session->end_date)->format('d M Y') }}
+                    <td>{{ \Carbon\Carbon::parse($record->classSubject->sessionProgram->session->end_date)->format('d M Y')  }}
                     </td>
                 </tr>
 

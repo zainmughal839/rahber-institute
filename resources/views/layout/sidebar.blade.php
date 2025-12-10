@@ -3,6 +3,12 @@ use Illuminate\Support\Facades\Route;
 $currentRoute = Route::currentRouteName();
 @endphp
 
+@php
+$assignment = auth()->check() ? auth()->user()->userAssignment : null;
+@endphp
+
+
+
 <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
     <div class="sidebar-brand">
         <a href="{{ route('dashboard') }}" class="brand-link">
@@ -124,6 +130,8 @@ $currentRoute = Route::currentRouteName();
                         @endcan
 
 
+
+                        {{-- @if(!$userAssignment || $userAssignment->panel_type === 'student') --}}
                         @can('student.create')
                         <li class="nav-item">
                             <a href="{{ route('students.create') }}"
@@ -156,6 +164,9 @@ $currentRoute = Route::currentRouteName();
                             </a>
                         </li>
                         @endcan
+                        {{--  @endif--}}
+
+
 
                         @can('teacher.create')
                         <li class="nav-item">
@@ -320,7 +331,18 @@ $currentRoute = Route::currentRouteName();
                             </ul>
                         </li>
                         @endcan
+
+                          @can('user-assignment.index')
+                        <li class="nav-item">
+                            <a href="{{ route('user-assignments.index') }}"
+                                class="nav-link {{ $currentRoute === 'user-assignments.index' ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-people"></i>
+                                <p>Panel Assignments</p>
+                            </a>
+                        </li>
+                        @endcan
                     </ul>
+                    
                 </li>
                 @endcan
 
@@ -334,7 +356,7 @@ $currentRoute = Route::currentRouteName();
                     </a>
                 </li>
 
-
+              
 
 
 

@@ -31,6 +31,18 @@ class StudentController extends Controller
 
     public function index(Request $request)
     {
+        if (session('is_panel_user')) {
+            $assignment = auth()->user()->userAssignment;
+
+            if ($assignment && $assignment->panel_type === 'student' && $assignment->assignable_type === 'App\\Models\\Student') {
+                $student = Student::findOrFail($assignment->assignable_id);
+                $data = collect([$student]); // sirf apna record
+                $showAll = false;
+
+                return view('students.index', compact('data', 'showAll'));
+            }
+        }
+
         if ($request->has('all')) {
             $data = $this->students->allWithoutPagination();
             $showAll = true;
@@ -43,9 +55,6 @@ class StudentController extends Controller
         return view('students.index', compact('data'));
     }
 
-    /**
-     * Step 1: show form to create student (personal details only).
-     */
     public function create()
     {
         // compute nextRoll for preview (optional)
@@ -62,9 +71,6 @@ class StudentController extends Controller
         return view('students.create_step1', compact('nextRoll', 'categories'));
     }
 
-    /**
-     * Store Step1 — create student personal record WITHOUT session_program_id, WITHOUT rollnum.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -78,10 +84,8 @@ class StudentController extends Controller
             'stu_category_id' => 'nullable|exists:stu_category,id',
         ]);
 
-        // create student
         $student = $this->students->create($validated);
 
-        // check which button was clicked
         if ($request->action == 'save_only') {
             return redirect()
                 ->route('students.edit', $student->id)
@@ -94,9 +98,6 @@ class StudentController extends Controller
             ->with('success', 'Student saved. Proceed to Step 2.');
     }
 
-    /**
-     * Step 2 form: choose session_program and collect fees (shows current student).
-     */
     public function showAssignForm($id)
     {
         $student = $this->students->find($id);
@@ -115,10 +116,6 @@ class StudentController extends Controller
         return view('students.assign_step2', compact('student', 'sessionPrograms', 'existingTotal', 'existingAdvance'));
     }
 
-    /**
-     * Assign session program and record fees (create ledger entry).
-     * If fees_amount > 0 and student has no rollnum -> generate rollnum and save.
-     */
     public function assignSessionProgram(Request $request, $id)
     {
         $student = $this->students->find($id);
@@ -203,10 +200,6 @@ class StudentController extends Controller
         return redirect()->route('students.index')->with('success', 'Session & fees updated successfully.');
     }
 
-    /**
-     * Edit displays step1 form for editing personal details OR you can separate
-     * depending whether you want to edit session separately.
-     */
     public function edit($id)
     {
         $student = $this->students->find($id);
@@ -276,6 +269,17 @@ class StudentController extends Controller
 
     public function ledger(Student $student)
     {
+        // Agar panel user hai → sirf apna ledger dikhao
+        if (session('is_panel_user')) {
+            $assignment = auth()->user()->userAssignment;
+
+            if (!$assignment
+                || $assignment->panel_type !== 'student'
+                || $assignment->assignable_id != $student->id) {
+                abort(403, 'Unauthorized access.');
+            }
+        }
+
         $student->load('sessionProgram.session', 'sessionProgram.program', 'ledgers');
 
         return view('students.student_ledger', compact('student'));
@@ -283,6 +287,20 @@ class StudentController extends Controller
 
     public function allAllLedger()
     {
+        if (session('is_panel_user')) {
+            $assignment = auth()->user()->userAssignment;
+
+            if ($assignment && $assignment->panel_type === 'student') {
+                $student = Student::with(['sessionProgram.session', 'sessionProgram.program', 'ledgers'])
+                    ->findOrFail($assignment->assignable_id);
+
+                $data = collect([$student]);
+
+                return view('students.all_student_ledger', compact('data'));
+            }
+        }
+
+        // Admin ke liye sab dikhao
         $data = Student::with(['sessionProgram.session', 'sessionProgram.program', 'ledgers'])->paginate(10);
 
         return view('students.all_student_ledger', compact('data'));

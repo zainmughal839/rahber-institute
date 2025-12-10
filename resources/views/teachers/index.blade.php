@@ -35,7 +35,7 @@
                             <th>CNIC</th>
                             <th>Email</th>
                             <th>Address</th>
-                             @canany(['teacher.update', 'teacher.delete'])
+                            @canany(['teacher.update', 'teacher.delete'])
                             <th width="130" class="text-center">Actions</th>
                             @endcan
                         </tr>
@@ -43,28 +43,35 @@
                     <tbody>
                         @forelse($data as $t)
                         <tr>
-                            <td class="text-center fw-bold">{{ $loop->iteration + ($data->currentPage()-1) * $data->perPage() }}</td>
+                            <td class="text-center fw-bold">
+                                @if ($data instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                                {{ $loop->iteration + ($data->currentPage() - 1) * $data->perPage() }}
+                                @else
+                                {{ $loop->iteration }}
+                                @endif
+                            </td>
                             <td>{{ $t->name }}</td>
                             <td>{{ $t->cnic ?? '-' }}</td>
                             <td>{{ $t->email ?? '-' }}</td>
                             <td><small class="text-muted">{{ Str::limit($t->address ?? '-', 60) }}</small></td>
-                             @canany(['teacher.update', 'teacher.delete'])
+                            @canany(['teacher.update', 'teacher.delete'])
                             <td class="text-center">
-                                
+
                                 <div class="btn-group" role="group">
                                     @can('teacher.index')
-<a href="{{ route('teachers.show', $t->id) }}" class="btn btn-info btn-sm" title="View">
-    <i class="bi bi-eye"></i>
-</a>
-@endcan
+                                    <a href="{{ route('teachers.show', $t->id) }}" class="btn btn-info btn-sm"
+                                        title="View">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    @endcan
 
-                                     @can('teacher.update')
+                                    @can('teacher.update')
                                     <a href="{{ route('teachers.edit', $t->id) }}" class="btn btn-warning btn-sm"
                                         title="Edit">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                     @endcan
-                                     @can('teacher.delete')
+                                    @can('teacher.delete')
                                     <button type="button" class="btn btn-danger btn-sm delete-btn"
                                         data-id="{{ $t->id }}" data-name="{{ $t->name }}" title="Delete">
                                         <i class="bi bi-trash"></i>
@@ -73,7 +80,8 @@
                                 </div>
 
                                 <!-- Hidden Delete Form -->
-                                <form id="delete-form-{{ $t->id }}" action="{{ route('teachers.destroy', $t->id) }}" method="POST" style="display: none;">
+                                <form id="delete-form-{{ $t->id }}" action="{{ route('teachers.destroy', $t->id) }}"
+                                    method="POST" style="display: none;">
                                     @csrf
                                     @method('DELETE')
                                 </form>

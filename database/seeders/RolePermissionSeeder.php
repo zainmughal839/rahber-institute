@@ -65,6 +65,12 @@ class RolePermissionSeeder extends Seeder
             'class-teacher.update',
             'class-teacher.delete',
 
+             // User Assignments
+            'user-assignment.index',
+            'user-assignment.create',
+            'user-assignment.update',
+            'user-assignment.delete',
+
             // ROLES
             'role.index',
             'role.create',
@@ -113,7 +119,6 @@ class RolePermissionSeeder extends Seeder
  *  php artisan cache:clear
  *  php artisan config:clear
  *  php artisan permission:cache-reset
- *
  *
  *  Step 2 — Run RolePermission Seeder
  *  ----------------------------------------
