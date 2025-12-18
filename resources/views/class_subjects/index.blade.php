@@ -46,11 +46,10 @@
                         <table class="table table-hover mb-0 align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th width="50" class="text-center">#</th>
-                                    <th>Class Name</th>
-                                    <th>Subjects</th>
-                                    <th>Session & Program</th>
-                                    <th>Description</th>
+                                    <th width="10" class="text-center">#</th>
+                                    <th width="150">Class Name</th>
+                                    <th  width="250">Subjects</th>
+                                    <th width="300">Session & Program</th>
                                     <th width="120" class="text-center">Status</th>
                                     @canany(['class-subject.update', 'class-subject.delete'])
                                     <th width="120" class="text-center">Actions</th>
@@ -76,20 +75,27 @@
 
                                     <td>
                                         @if($row->sessionProgram && $row->sessionProgram->session)
-                                        Session:
-                                        {{ \Carbon\Carbon::parse($row->sessionProgram->session->start_date)->format('d M, Y') }}
-                                        -
-                                        {{ \Carbon\Carbon::parse($row->sessionProgram->session->end_date)->format('d M, Y') }}
-                                        |
-                                        Program: {{ $row->sessionProgram->program->name ?? '-' }}
+
+                                        <div>
+                                            <strong>Session:</strong>
+                                            {{ $row->sessionProgram->session->sessions_name }}
+
+                                        </div>
+
+                                        <div class="mt-2">
+                                            <strong>Programs:</strong><br>
+                                            @forelse($row->programs as $program)
+                                            <span class="badge bg-primary me-1 mb-1">
+                                                {{ $program->name }}
+                                            </span>
+                                            @empty
+                                            <span class="text-muted">No Program</span>
+                                            @endforelse
+                                        </div>
+
                                         @else
                                         <span class="text-muted">N/A</span>
                                         @endif
-                                    </td>
-
-
-                                    <td>
-                                        <small class="text-muted">{{ $row->desc ?? '-' }}</small>
                                     </td>
 
                                     <td class="text-center">
@@ -162,26 +168,25 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const id = this.dataset.id;
-        const name = this.dataset.name;
-
-        Swal.fire({
-            title: 'Are you sure?',
-            text: `Delete class subject "${name}"? This cannot be undone!`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('delete-form-' + id).submit();
-            }
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const name = this.dataset.name;
+            Swal.fire({
+                title: 'Are you sure?',
+                text: `Delete class subject "${name}"? This cannot be undone!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + id).submit();
+                }
+            });
         });
     });
-});
 </script>
 @endsection

@@ -51,43 +51,48 @@
                             <thead class="table-light">
                                 <tr>
                                     <th width="80" class="text-center">#</th>
-
-                                    <th width="150">Start Date</th>
-                                    <th width="150">End Date</th>
-                                    <th width="300">Description</th>
+                                    <th width="200">Session Name</th>
+                                    <th width="150">Start Year</th>
+                                    <th width="150">End Year</th>
                                     <th width="140" class="text-center">Status</th>
                                     @canany(['session.update', 'session.delete'])
                                     <th width="120" class="text-center">Actions</th>
                                     @endcan
                                 </tr>
                             </thead>
+
                             <tbody>
                                 @forelse($sessions as $s)
                                 <tr>
                                     <td class="text-center fw-bold">{{ $loop->iteration }}</td>
 
-                                    <td>{{ \Carbon\Carbon::parse($s->start_date)->format('d M, Y') }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($s->end_date)->format('d M, Y') }}</td>
+                                     <!-- Session Name -->
                                     <td>
-                                        <small class="text-muted">
-                                            {{ Str::limit($s->description, 80) ?: '-' }}
-                                        </small>
+                                        <strong>{{ $s->sessions_name }}</strong>
                                     </td>
+
+                                    <!-- Start / End Year -->
+                                    <td>{{ $s->start_date }}</td>
+                                    <td>{{ $s->end_date }}</td>
+
+                                   
+
+                                    <!-- Status -->
                                     <td class="text-center">
                                         @php
-                                        $now = \Carbon\Carbon::now();
-                                        $start = \Carbon\Carbon::parse($s->start_date);
-                                        $end = \Carbon\Carbon::parse($s->end_date);
+                                        $currentYear = now()->year;
                                         @endphp
 
-                                        @if($now->between($start, $end))
-                                        <span class="badge bg-success rounded-pill px-3">Active</span>
-                                        @elseif($now->lt($start))
-                                        <span class="badge bg-warning text-dark rounded-pill px-3">Upcoming</span>
-                                        @else
-                                        <span class="badge bg-secondary rounded-pill px-3">Expired</span>
-                                        @endif
+                                        @if($currentYear >= (int)$s->start_date && $currentYear <= (int)$s->end_date)
+                                            <span class="badge bg-success rounded-pill px-3">Active</span>
+                                            @elseif($currentYear < (int)$s->start_date)
+                                                <span
+                                                    class="badge bg-warning text-dark rounded-pill px-3">Upcoming</span>
+                                                @else
+                                                <span class="badge bg-secondary rounded-pill px-3">Expired</span>
+                                                @endif
                                     </td>
+
                                     @canany(['session.update', 'session.delete'])
                                     <td class="text-center">
                                         <div class="btn-group" role="group">
@@ -100,15 +105,13 @@
 
                                             @can('session.delete')
                                             <button type="button" class="btn btn-danger btn-sm delete-btn"
-                                                data-id="{{ $s->id }}"
-                                                data-name="{{ $s->name ?? 'Session ' . $loop->iteration }}"
+                                                data-id="{{ $s->id }}" data-name="{{ $s->sessions_name }}"
                                                 title="Delete">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                             @endcan
                                         </div>
 
-                                        <!-- Hidden Delete Form -->
                                         <form id="delete-form-{{ $s->id }}"
                                             action="{{ route('sessions.destroy', $s->id) }}" method="POST"
                                             style="display:none;">
@@ -120,7 +123,7 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="7" class="text-center py-5 text-muted">
+                                    <td colspan="6" class="text-center py-5 text-muted">
                                         <i class="bi bi-calendar-x display-1 d-block mb-3"></i>
                                         <h4>No sessions found</h4>
                                         <p>Add your academic or fiscal year sessions here.</p>
@@ -131,6 +134,7 @@
                                 </tr>
                                 @endforelse
                             </tbody>
+
                         </table>
                     </div>
                 </div>
@@ -149,26 +153,25 @@
 <!-- SweetAlert2 Delete Confirmation (same as programs) -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const id = this.getAttribute('data-id');
-        const name = this.getAttribute('data-name');
-
-        Swal.fire({
-            title: 'Are you sure?',
-            text: `Delete session "${name}"? This cannot be undone!`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('delete-form-' + id).submit();
-            }
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const name = this.getAttribute('data-name');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: `Delete session "${name}"? This cannot be undone!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + id).submit();
+                }
+            });
         });
     });
-});
 </script>
 @endsection

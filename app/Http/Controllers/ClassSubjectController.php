@@ -24,22 +24,31 @@ class ClassSubjectController extends Controller
     }
 
     
-    public function index()
-    {
-        $data = $this->classes->paginate(10);
-        $showAll = false;
+public function index()
+{
+    $data = ClassSubject::with([
+            'subjects',
+            'sessionProgram.session',
+            'programs'   // ✅ IMPORTANT
+        ])
+        ->paginate(10);
 
-        return view('class_subjects.index', compact('data', 'showAll'));
-    }
+    $showAll = false;
+    return view('class_subjects.index', compact('data', 'showAll'));
+}
 
-    
-    public function all()
-    {
-        $data = $this->classes->all(); 
-        $showAll = true;
+public function all()
+{
+    $data = ClassSubject::with([
+            'subjects',
+            'sessionProgram.session',
+            'programs'
+        ])
+        ->get();
 
-        return view('class_subjects.index', compact('data', 'showAll'));
-    }
+    $showAll = true;
+    return view('class_subjects.index', compact('data', 'showAll'));
+}
 
     public function create()
     {
@@ -49,27 +58,36 @@ class ClassSubjectController extends Controller
         return view('class_subjects.create', compact('subjects', 'sessionPrograms'));
     }
 
+    
     public function store(Request $request)
-    {
-        $request->validate([
-            'class_name' => 'required',
-            'session_program_id' => 'required|exists:session_program,id',
-            'subject_id' => 'required|array',
-        ]);
+{
+    $request->validate([
+        'class_name' => 'required|string|max:255',
+        'session_program_id' => 'required|exists:session_program,id',
+        'subject_id' => 'required|array',
+        'program_id' => 'required|array', // ✅ validate programs
+        'status' => 'required|in:active,inactive',
+        'desc' => 'nullable|string',
+    ]);
 
-        $class = $this->classes->store([
-            'class_name' => $request->class_name,
-            'session_program_id' => $request->session_program_id,
-            'status' => $request->status,
-            'desc' => $request->desc,
-        ]);
+    // Create class via repository
+    $class = $this->classes->store([
+        'class_name' => $request->class_name,
+        'session_program_id' => $request->session_program_id,
+        'status' => $request->status,
+        'desc' => $request->desc,
+    ]);
 
-        // Attach subjects
-        $class->subjects()->sync($request->subject_id);
+    // Attach subjects
+    $class->subjects()->sync($request->subject_id);
 
-        return redirect()->route('class-subjects.index')
-            ->with('success', 'Class created successfully!');
-    }
+    // Attach programs
+    $class->programs()->sync($request->program_id);
+
+    return redirect()->route('class-subjects.index')
+                     ->with('success', 'Class created successfully!');
+}
+
 
     public function edit($id)
     {
@@ -80,31 +98,48 @@ class ClassSubjectController extends Controller
         return view('class_subjects.create', compact('class', 'subjects', 'sessionPrograms'));
     }
 
+    
+    
     public function update(Request $request, $id)
-    {
-        $request->validate([
-            'class_name' => 'required',
-            'session_program_id' => 'required|exists:session_program,id',
-            'subject_id' => 'required|array',
-        ]);
+{
+    $request->validate([
+        'class_name' => 'required|string|max:255',
+        'session_program_id' => 'required|exists:session_program,id',
+        'subject_id' => 'required|array',
+        'program_id' => 'required|array', // ✅ validate programs
+        'status' => 'required|in:active,inactive',
+        'desc' => 'nullable|string',
+    ]);
 
-        $this->classes->update(
-            $id,
-            $request->only('class_name', 'session_program_id', 'status', 'desc')
-        );
+    // Update class via repository
+    $this->classes->update($id, $request->only('class_name', 'session_program_id', 'status', 'desc'));
 
-        $class = ClassSubject::findOrFail($id);
+    $class = ClassSubject::findOrFail($id);
 
-        $class->subjects()->sync($request->subject_id);
+    // Sync subjects
+    $class->subjects()->sync($request->subject_id);
 
-        return redirect()->route('class-subjects.index')
-            ->with('success', 'Class updated successfully!');
-    }
+    // Sync programs
+    $class->programs()->sync($request->program_id);
+
+    return redirect()->route('class-subjects.index')
+                     ->with('success', 'Class updated successfully!');
+}
+
+
 
     public function destroy($id)
     {
         $this->classes->delete($id);
 
         return back()->with('success', 'Class deleted successfully');
+    }
+
+
+    // AJAX: return programs for selected session program
+    public function getPrograms(SessionProgram $sessionProgram)
+    {
+        $programs = $sessionProgram->programs()->select('id','name')->get();
+        return response()->json($programs);
     }
 }

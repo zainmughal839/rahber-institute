@@ -11,10 +11,11 @@ class Session extends Model
 
     protected $table = 'sessions_p';
 
-    protected $fillable = [
-        'sessions_name',
-        'start_date',
-        'end_date',
-        'description',
-    ];
+   protected $fillable = [
+    'sessions_name',
+    'start_date',
+    'end_date',
+    'description',
+];
+
 }

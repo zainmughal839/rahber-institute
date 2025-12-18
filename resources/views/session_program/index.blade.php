@@ -53,70 +53,54 @@
                         <table class="table table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th width="80" class="text-center">#</th>
-                                    <th width="250">Program Title</th>
+                                    <th width="8" class="text-center">#</th>
+                                    <th width="250">Program Titles</th>
                                     <th width="200">Session</th>
-                                    <th width="200">Seats</th>
-                                    <th width="200">Fees</th>
                                     @canany(['session_program.update', 'session_program.delete'])
                                     <th width="130" class="text-center">Actions</th>
                                     @endcan
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($sessionPrograms as $program)
+                                @forelse($sessionPrograms as $sp)
                                 <tr>
-                                    <!-- Serial -->
+                                    <!-- # -->
                                     <td class="text-center fw-bold">{{ $loop->iteration }}</td>
 
-                                    <!-- Program Title -->
+                                    <!-- Programs -->
                                     <td>
-                                        {{ $program->program->name ?? '-' }}
-
-                                        @if($program->program->shortname)
-                                        ({{ $program->program->shortname }})
-                                        @endif
-
-                                        @if($program->program->program_code)
-                                        - {{ $program->program->program_code }}
-                                        @endif
+                                        @foreach($sp->programs as $p)
+                                        <span class="badge bg-primary">{{ $p->name }}</span><br>
+                                        @endforeach
                                     </td>
 
-                                    <!-- Session Date Range -->
+                                    <!-- Session -->
                                     <td>
-                                        {{ $program->session ? \Carbon\Carbon::parse($program->session->start_date)->format('d M, Y') : 'No Session' }}
-
-                                        –
-                                        {{ $program->session ? \Carbon\Carbon::parse($program->session->end_date)->format('d M, Y') : '-' }}
-
+                                        {{ $sp->session->sessions_name ?? '-' }}
                                     </td>
 
-                                    <td>
-                                        {{ $program->seats ?? '-' }}
-                                    </td>
-                                    <td> {{ number_format($program->fees, 2) ?? '-' }}</td>
-                                    <!-- Actions -->
-
-                                    @canany(['session_program.update', 'session_program.delete'])
+                                    @canany(['session_program.update','session_program.delete'])
                                     <td class="text-center">
-                                        <div class="btn-group" role="group">
+                                        <div class="btn-group">
+
                                             @can('session_program.update')
-                                            <a href="{{ route('session_program.edit', $program->id) }}"
-                                                class="btn btn-warning btn-sm" title="Edit">
+                                            <a href="{{ route('session_program.edit',$sp->id) }}"
+                                                class="btn btn-warning btn-sm">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
                                             @endcan
+
                                             @can('session_program.delete')
                                             <button type="button" class="btn btn-danger btn-sm delete-btn"
-                                                data-id="{{ $program->id }}" data-name="{{ $program->program->name }}"
-                                                title="Delete">
+                                                data-id="{{ $sp->id }}" data-name="{{ $sp->session->sessions_name }}">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                             @endcan
+
                                         </div>
 
-                                        <form id="delete-form-{{ $program->id }}"
-                                            action="{{ route('session_program.destroy', $program->id) }}" method="POST"
+                                        <form id="delete-form-{{ $sp->id }}"
+                                            action="{{ route('session_program.destroy',$sp->id) }}" method="POST"
                                             style="display:none;">
                                             @csrf
                                             @method('DELETE')
@@ -126,13 +110,8 @@
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-5 text-muted">
-                                        <i class="bi bi-journal-x display-1 d-block mb-3 opacity-50"></i>
-                                        <h4>No session programs found</h4>
-                                        <p>Create your first program to get started.</p>
-                                        <a href="{{ route('session_program.create') }}" class="btn btn-primary mt-3">
-                                            <i class="bi bi-plus-circle"></i> Add First Program
-                                        </a>
+                                    <td colspan="4" class="text-center text-muted py-5">
+                                        No records found
                                     </td>
                                 </tr>
                                 @endforelse
@@ -158,26 +137,25 @@
 <!-- SweetAlert2 Delete Confirmation -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const id = this.getAttribute('data-id');
-        const name = this.getAttribute('data-name');
-
-        Swal.fire({
-            title: 'Are you sure?',
-            text: `Delete program "${name}"? This cannot be undone!`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('delete-form-' + id).submit();
-            }
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const name = this.getAttribute('data-name');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: `Delete program "${name}"? This cannot be undone!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('delete-form-' + id).submit();
+                }
+            });
         });
     });
-});
 </script>
 @endsection

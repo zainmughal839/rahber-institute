@@ -43,7 +43,6 @@
                 </div>
                 @endif
 
-
                 <!-- Form -->
                 <form method="POST"
                     action="{{ isset($session) ? route('sessions.update', $session->id) : route('sessions.store') }}"
@@ -74,37 +73,25 @@
                                 </div>
                             </div>
 
-
-                            <!-- Start Date -->
+                            <!-- Start Year -->
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label fw-semibold">
-                                        Start Date <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="date" name="start_date"
-                                        class="form-control @error('start_date') is-invalid @enderror"
-                                        value="{{ old('start_date', isset($session) ? $session->start_date : '') }}"
-                                        required>
-                                    @error('start_date')
-                                    <div class="text-danger small mt-1">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                                <label class="form-label fw-semibold">
+                                    Start Year <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" name="start_date"
+                                    class="form-control @error('start_date') is-invalid @enderror"
+                                    placeholder="e.g. 2024" value="{{ old('start_date', $session->start_date ?? '') }}"
+                                    required>
                             </div>
 
-                            <!-- End Date -->
+                            <!-- End Year -->
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label fw-semibold">
-                                        End Date <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="date" name="end_date"
-                                        class="form-control @error('end_date') is-invalid @enderror"
-                                        value="{{ old('end_date', isset($session) ? $session->end_date : '') }}"
-                                        required>
-                                    @error('end_date')
-                                    <div class="text-danger small mt-1">{{ $message }}</div>
-                                    @enderror
-                                </div>
+                                <label class="form-label fw-semibold">
+                                    End Year <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" name="end_date"
+                                    class="form-control @error('end_date') is-invalid @enderror" placeholder="e.g. 2025"
+                                    value="{{ old('end_date', $session->end_date ?? '') }}" required>
                             </div>
 
                             <!-- Description -->

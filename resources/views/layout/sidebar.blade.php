@@ -7,8 +7,6 @@ $currentRoute = Route::currentRouteName();
 $assignment = auth()->check() ? auth()->user()->userAssignment : null;
 @endphp
 
-
-
 <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
     <div class="sidebar-brand">
         <a href="{{ route('dashboard') }}" class="brand-link">
@@ -32,7 +30,6 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                 @canany(['session.index', 'session.create', 'program.index', 'program.create', 'session_program.index'])
 
                 <li class="nav-header">Combination Session & Program</li>
-
 
                 {{-- SESSION & PROGRAM MENU --}}
                 <li
@@ -98,12 +95,6 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                 </li>
                 @endcan
 
-
-
-
-
-
-
                 @canany(['student.index', 'student.create', 'teacher.index', 'teacher.create', 'stu_category.index',
                 'stu_category.create'])
                 <li class="nav-header">Student & Teacher</li>
@@ -114,10 +105,7 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                         <p>Student & Teacher <i class="nav-arrow bi bi-chevron-right"></i></p>
                     </a>
 
-
-
                     <ul class="nav nav-treeview">
-
 
                         @can('stu_category.index')
                         <li class="nav-item">
@@ -128,8 +116,6 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                             </a>
                         </li>
                         @endcan
-
-
 
                         {{-- @if(!$userAssignment || $userAssignment->panel_type === 'student') --}}
                         @can('student.create')
@@ -152,9 +138,6 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                         </li>
                         @endcan
 
-
-
-
                         @can('student.index')
                         <li class="nav-item">
                             <a href="{{ route('students.ledger.all') }}"
@@ -164,9 +147,7 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                             </a>
                         </li>
                         @endcan
-                        {{--  @endif--}}
-
-
+                        {{-- @endif--}}
 
                         @can('teacher.create')
                         <li class="nav-item">
@@ -177,7 +158,6 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                             </a>
                         </li>
                         @endcan
-
 
                         @can('teacher.index')
                         <li class="nav-item">
@@ -203,9 +183,8 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                 </li>
                 @endcan
 
-
-
-                @canany(['subject.index', 'subject.create', 'class-subject.index', 'class-teacher.index',
+                @canany(['subject.index', 'subject.create', 'class-subject.index', 'class-subject.create',
+                'class-teacher.index',
                 'class-teacher.create'])
                 <li class="nav-header">Teacher classes</li>
                 <li
@@ -215,15 +194,13 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                         <p>Teacher Assign class <i class="nav-arrow bi bi-chevron-right"></i></p>
                     </a>
 
-
-
                     <ul class="nav nav-treeview">
 
                         @can('subject.index')
                         <li class="nav-item">
                             <a href="{{ route('subjects.index') }}"
                                 class="nav-link {{ $currentRoute === 'subjects.index' ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-book"></i>
+                                <i class="nav-icon bi bi-circle"></i>
                                 <p>Books / Subjects</p>
                             </a>
                         </li>
@@ -239,7 +216,6 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                         </li>
                         @endcan
 
-
                         @can('class-teacher.index')
                         <li class="nav-item">
                             <a href="{{ route('class-teacher.index') }}"
@@ -254,11 +230,55 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                 </li>
                 @endcan
 
+                @canany(['task-cat.index', 'task-cat.create', 'task.index', 'task.create', 'announcement.create', 'announcement.index'])
+                <li class="nav-header">Task, Announcement </li>
+                <li
+                    class="nav-item {{ str_starts_with($currentRoute, 'task-cat.') || str_starts_with($currentRoute, 'tasks.') || str_starts_with($currentRoute, 'announcements.') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon bi bi-list-task"></i>
+                        <p>Task, Announcement<i class="nav-arrow bi bi-chevron-right"></i></p>
+                    </a>
 
-                @canany(['role.index', 'role.create', 'user.index', 'user.create'])
+                    <ul class="nav nav-treeview">
+
+                        @can('task-cat.index')
+                        <li class="nav-item">
+                            <a href="{{ route('task-cat.index') }}"
+                                class="nav-link {{ $currentRoute === 'task-cat.index' ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-circle"></i>
+                                <p>Task Categories</p>
+                            </a>
+                        </li>
+                        @endcan
+
+                        @can('task.index')
+                        <li class="nav-item">
+                            <a href="{{ route('tasks.index') }}"
+                                class="nav-link {{ $currentRoute === 'tasks.index' ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-circle"></i>
+                                <p>Task Assign</p>
+                            </a>
+                        </li>
+                        @endcan
+
+                        @can('announcement.index')
+                        <li class="nav-item">
+                            <a href="{{ route('announcements.index') }}"
+                                class="nav-link {{ $currentRoute === 'announcements.index' ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-circle"></i>
+                                <p>Announcements</p>
+                            </a>
+                        </li>
+                        @endcan
+                    </ul>
+                </li>
+                @endcan
+
+                @canany(['role.index', 'role.create', 'user.index', 'user.create', 'user-assignment.index',
+                'user-assignment.create'])
                 <li class="nav-header">Role & Permission</li>
 
-                <li class="nav-item {{ request()->is('users*', 'roles*') ? 'menu-open' : '' }}">
+                <li class="nav-item {{ request()->is('users*', 'roles*', 'user-assignment*')  ? 'menu-open' : '' }}">
                     <a href="#" class="nav-link {{ request()->is('users*', 'roles*') ? 'active' : '' }}">
                         <i class="nav-icon bi bi-shield-lock"></i>
                         <p>
@@ -332,7 +352,7 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                         </li>
                         @endcan
 
-                          @can('user-assignment.index')
+                        @can('user-assignment.index')
                         <li class="nav-item">
                             <a href="{{ route('user-assignments.index') }}"
                                 class="nav-link {{ $currentRoute === 'user-assignments.index' ? 'active' : '' }}">
@@ -342,7 +362,7 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                         </li>
                         @endcan
                     </ul>
-                    
+
                 </li>
                 @endcan
 
@@ -355,13 +375,6 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                         <p>Profile Setting</p>
                     </a>
                 </li>
-
-              
-
-
-
-
-
 
             </ul>
         </nav>

@@ -8,12 +8,16 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SessionController;
+use App\Http\Controllers\TaskCatController;
 use App\Http\Controllers\SessionProgramController;
 use App\Http\Controllers\StuCategoryController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\AnnouncementController;
+
 use Illuminate\Support\Facades\Route;
 
 // ========== Login Page ==========
@@ -222,6 +226,30 @@ Route::middleware('auth')->group(function () {
         ->name('students.ledger');
     Route::get('/students/ledger/all', [StudentController::class, 'allAllLedger'])->name('students.ledger.all');
 
+
+
+Route::get('session-program-programs/{id}', [\App\Http\Controllers\StudentController::class, 'getProgramsBySessionProgram'])
+    ->name('session_program.programs');
+
+
+    Route::get('/ajax/get-programs/{spId}', [TaskController::class, 'getPrograms']);
+Route::get('/ajax/get-students/{programId}', [TaskController::class, 'getStudents']);
+
+
+
+Route::post('/ajax/students/filter', [TaskController::class, 'filterStudents'])
+    ->name('ajax.students.filter');
+
+
+    Route::get('ajax/programs/{sp}', [StudentController::class,'getProgramsBySessionProgram']);
+Route::get('ajax/classes/{program}', [StudentController::class,'getClassesByProgram']);
+Route::get(
+    'ajax/program-fees/{sessionProgram}/{program}',
+    [StudentController::class, 'getProgramFees']
+);
+
+
+
     //  ======================= Teacher ==========================================
     Route::get('/teachers', [TeacherController::class, 'index'])
     ->middleware('permission:teacher.index')
@@ -267,21 +295,32 @@ Route::middleware('auth')->group(function () {
     Route::resource('subjects', SubjectController::class);
 
     //  ======================= Class Subject ==========================================
-    Route::prefix('class-subjects')->name('class-subjects.')->group(function () {
-        Route::get('/', [ClassSubjectController::class, 'index'])->name('index');
-        Route::get('/all', [ClassSubjectController::class, 'all'])->name('all');
-        Route::get('/create', [ClassSubjectController::class, 'create'])->name('create');
-        Route::post('/', [ClassSubjectController::class, 'store'])->name('store');
-        Route::get('/{id}/edit', [ClassSubjectController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [ClassSubjectController::class, 'update'])->name('update');
-        Route::delete('/{id}', [ClassSubjectController::class, 'destroy'])->name('destroy');
-    });
+// Class Subjects CRUD
+Route::prefix('class-subjects')->name('class-subjects.')->group(function () {
+    Route::get('/', [ClassSubjectController::class, 'index'])->name('index');
+    Route::get('/all', [ClassSubjectController::class, 'all'])->name('all');
+    Route::get('/create', [ClassSubjectController::class, 'create'])->name('create');
+    Route::post('/', [ClassSubjectController::class, 'store'])->name('store');
+    Route::get('/{id}/edit', [ClassSubjectController::class, 'edit'])->name('edit');
+    Route::put('/{id}', [ClassSubjectController::class, 'update'])->name('update');
+    Route::delete('/{id}', [ClassSubjectController::class, 'destroy'])->name('destroy');
+});
+
+// AJAX route: get programs by session program
+Route::get('get-programs/{sessionProgram}', [ClassSubjectController::class, 'getPrograms']);
+
+
 
     // / class teacher
     Route::get('class-teacher/all', [ClassTeacherController::class, 'all'])->name('class-teacher.all');
     Route::resource('class-teacher', ClassTeacherController::class)->except(['show']);
     Route::get('class-teacher/{id}/show', [ClassTeacherController::class, 'show'])
     ->name('class-teacher.show');
+    Route::get(
+    'class-subject/{id}/subjects',
+    [ClassTeacherController::class, 'getSubjects']
+)->name('class-subject.subjects');
+
 
 
     //// USER ASSIGNMENTS
@@ -293,6 +332,26 @@ Route::middleware('auth')->group(function () {
         'update' => 'user-assignments.update',
         'destroy' => 'user-assignments.destroy',
     ]);
+
+
+    // task cat
+    Route::resource('task-cat', TaskCatController::class);
+
+    // task
+    Route::resource('tasks', TaskController::class);
+    Route::get('tasks/{task}/view', [TaskController::class,'view'])
+    ->name('tasks.view');
+
+Route::post('tasks/{task}/response', [TaskController::class,'storeResponse'])
+    ->name('tasks.response')
+    ->middleware('permission:task.index'); 
+
+
+    // announcement
+    Route::resource('announcements', AnnouncementController::class);
+
+
+
 });
 
 /*

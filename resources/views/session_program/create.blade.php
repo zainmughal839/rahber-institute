@@ -11,26 +11,20 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h3 class="card-title fw-bold mb-0">
                             <i class="bi bi-link-45deg me-2"></i>
-                            Assign Program to Session
+                            Assign Programs to Session
                         </h3>
-                        <div class="card-tools">
-                            @can('session_program.index')
-                            <a href="{{ route('session_program.index') }}" class="btn btn-light btn-sm shadow-sm">
-                                <i class="bi bi-list-ul me-1"></i> All Assignments
-                            </a>
-                            @endcan
-                        </div>
+                        <a href="{{ route('session_program.index') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-list-ul"></i> All Assignments
+                        </a>
                     </div>
                 </div>
 
-                <!-- Validation Errors -->
+                <!-- Errors -->
                 @if ($errors->any())
-                <div class="alert alert-danger alert-dismissible m-3">
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    <h4><i class="bi bi-exclamation-triangle"></i> Please fix the errors:</h4>
+                <div class="alert alert-danger m-3">
                     <ul class="mb-0">
                         @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
+                            <li>{{ $error }}</li>
                         @endforeach
                     </ul>
                 </div>
@@ -38,121 +32,143 @@
 
                 <!-- Form -->
                 <form method="POST"
-                    action="{{ isset($item) ? route('session_program.update', $item->id) : route('session_program.store') }}"
-                    class="form-horizontal">
+                      action="{{ isset($item) ? route('session_program.update',$item->id) : route('session_program.store') }}">
                     @csrf
-                    @if(isset($item))
-                    @method('PUT')
-                    @endif
+                    @isset($item) @method('PUT') @endisset
 
                     <div class="card-body">
-                        <div class="row g-4">
 
-                            <!-- Select Session -->
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label fw-semibold">
-                                        Select Session <span class="text-danger">*</span>
-                                    </label>
-                                    <select name="session_id"
-                                        class="form-control @error('session_id') is-invalid @enderror" required>
-                                        <option value="">-- Choose Session --</option>
-
-                                        @foreach($sessions as $s)
-                                        <option value="{{ $s->id }}"
-                                            {{ (old('session_id', $item->session_id ?? '') == $s->id) ? 'selected' : '' }}>
-
-                                            {{ $s->sessions_name }}
-                                            — ({{ \Carbon\Carbon::parse($s->start_date)->format('d M Y') }}
-                                            to
-                                            {{ \Carbon\Carbon::parse($s->end_date)->format('d M Y') }})
-
-
-                                        </option>
-                                        @endforeach
-                                    </select>
-
-                                    @error('session_id')
-                                    <div class="text-danger small mt-1">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <!-- Select Program -->
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label fw-semibold">
-                                        Select Program <span class="text-danger">*</span>
-                                    </label>
-                                    <select name="program_id"
-                                        class="form-control @error('program_id') is-invalid @enderror" required>
-                                        <option value="">-- Choose Program --</option>
-                                        @foreach($programs as $p)
-                                        <option value="{{ $p->id }}"
-                                            {{ (old('program_id', $item->program_id ?? '') == $p->id) ? 'selected' : '' }}>
-
-                                            {{ $p->name }}
-                                            @if($p->shortname) ({{ $p->shortname }}) @endif
-                                            @if($p->program_code) - {{ $p->program_code }} @endif
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                    @error('program_id')
-                                    <div class="text-danger small mt-1">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <!-- Seats -->
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label fw-semibold">
-                                        Total Seats
-                                    </label>
-                                    <input type="number" name="seats" min="1" step="1"
-                                        class="form-control @error('seats') is-invalid @enderror"
-                                        value="{{ old('seats', $item->seats ?? '') }}" placeholder="e.g. 60">
-                                    @error('seats')
-                                    <div class="text-danger small mt-1">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <!-- Fees -->
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label fw-semibold">
-                                        Program Fees (Per Semester)
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">Rs</span>
-                                        <input type="number" name="fees" step="0.01" min="0"
-                                            class="form-control @error('fees') is-invalid @enderror"
-                                            value="{{ old('fees', $item->fees ?? '') }}" placeholder="e.g. 45000.00">
-                                    </div>
-                                    @error('fees')
-                                    <div class="text-danger small mt-1">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
+                        <!-- Session -->
+                        <div class="mb-4 col-8">
+                            <label class="form-label fw-bold">Select Session <span class="text-danger">*</span></label>
+                            <select name="session_id" class="form-control" required>
+                                <option value="">-- Select Session --</option>
+                                @foreach($sessions as $s)
+                                    <option value="{{ $s->id }}"
+                                        {{ old('session_id', $item->session_id ?? '') == $s->id ? 'selected' : '' }}>
+                                        {{ $s->sessions_name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
+
+                        <hr>
+
+                        <!-- Programs Repeater -->
+                        <h5 class="fw-bold mb-4">Programs</h5>
+
+                        <div id="program-repeater">
+
+                            @php
+                                $rows = old('programs', $itemPrograms ?? [ [] ]);
+                            @endphp
+
+                            @foreach($rows as $index => $row)
+                            <div class="row g-3 align-items-end program-row border rounded p-3 mb-3">
+
+                                <!-- Program -->
+                                <div class="col-md-5">
+                                    <label class="form-label">Program <span class="text-danger">*</span></label>
+                                    <select name="programs[{{ $index }}][program_id]" class="form-control" required>
+                                        <option value="">-- Select Program --</option>
+                                        @foreach($programs as $p)
+                                            <option value="{{ $p->id }}"
+                                                {{ ($row['program_id'] ?? '') == $p->id ? 'selected' : '' }}>
+                                                {{ $p->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- Seats -->
+                                <div class="col-md-3">
+                                    <label class="form-label">Seats</label>
+                                    <input type="number"
+                                           name="programs[{{ $index }}][seats]"
+                                           class="form-control"
+                                           value="{{ $row['seats'] ?? '' }}"
+                                           min="1">
+                                </div>
+
+                                <!-- Fees -->
+                                <div class="col-md-3">
+                                    <label class="form-label">Fees</label>
+                                    <input type="number"
+                                           name="programs[{{ $index }}][fees]"
+                                           class="form-control"
+                                           step="0.01"
+                                           value="{{ $row['fees'] ?? '' }}">
+                                </div>
+
+                                <!-- Remove -->
+                                <div class="col-md-1 text-end">
+                                    <button type="button" class="btn btn-danger remove-row">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+                            @endforeach
+                        </div>
+
+                        <!-- Add Button -->
+                        <button type="button" id="add-row" class="btn btn-outline-primary">
+                            <i class="bi bi-plus-circle"></i> Add Program
+                        </button>
+
                     </div>
 
                     <!-- Footer -->
-                    <div class="card-footer bg-light border-top">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <a href="{{ route('session_program.index') }}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Back to List
-                            </a>
-                            <button type="submit" class="btn btn-success btn-l px-3">
-                                <i class="bi bi-save"></i> Assign Program
-                            </button>
-                        </div>
+                    <div class="card-footer text-end">
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="bi bi-save"></i> Save
+                        </button>
                     </div>
                 </form>
+
             </div>
         </div>
     </div>
 </div>
+
+{{-- JS --}}
+<script>
+let index = {{ count($rows) }};
+
+document.getElementById('add-row').addEventListener('click', function () {
+    let html = `
+    <div class="row g-3 align-items-end program-row border rounded p-3 mb-3">
+        <div class="col-md-5">
+            <label class="form-label">Program</label>
+            <select name="programs[${index}][program_id]" class="form-control" required>
+                <option value="">-- Select Program --</option>
+                @foreach($programs as $p)
+                    <option value="{{ $p->id }}">{{ $p->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Seats</label>
+            <input type="number" name="programs[${index}][seats]" class="form-control">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Fees</label>
+            <input type="number" step="0.01" name="programs[${index}][fees]" class="form-control">
+        </div>
+        <div class="col-md-1 text-end">
+            <button type="button" class="btn btn-danger remove-row">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </div>`;
+    document.getElementById('program-repeater').insertAdjacentHTML('beforeend', html);
+    index++;
+});
+
+document.addEventListener('click', function (e) {
+    if (e.target.closest('.remove-row')) {
+        e.target.closest('.program-row').remove();
+    }
+});
+</script>
 @endsection

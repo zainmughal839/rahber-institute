@@ -31,29 +31,30 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Class (Session & Program)</label>
-                        <select name="class_subjects_id" class="form-select" required>
-                            <option value="">Select Class</option>
-                            @foreach($classSubjects as $cs)
-                            <option value="{{ $cs->id }}" @if(old('class_subjects_id', $record->class_subjects_id ?? '')
-                                == $cs->id) selected @endif>
-                                {{ $cs->class_name }}
-                                @endforeach
-                        </select>
+                        <select name="class_subjects_id" id="class_subject" class="my-select"  style="width: 100%;" required>
+    <option value="">Select Class</option>
+
+    @foreach($classSubjects as $cs)
+    <option value="{{ $cs->id }}"
+        @if(old('class_subjects_id', $record->class_subjects_id ?? '') == $cs->id) selected @endif>
+        {{ $cs->class_name }}
+        |
+        {{ $cs->sessionProgram->session->sessions_name ?? 'N/A' }}
+        |
+        {{ $cs->programs->pluck('name')->join(', ') }}
+    </option>
+    @endforeach
+</select>
+
+
                     </div>
 
-                    <!-- <label class="form-label fw-semibold">Class (Session & Program)</label>
-                        <select name="class_subjects_id" class="form-select" required>
-                            <option value="">Select Class</option>
-                            @foreach($classSubjects as $cs)
-                            <option value="{{ $cs->id }}" @if(old('class_subjects_id', $record->class_subjects_id ?? '')
-                                == $cs->id) selected @endif>
-                                {{ $cs->class_name }} — {{ $cs->subject->book_name ?? '—' }}
-                                ({{ \Carbon\Carbon::parse($cs->sessionProgram->session->start_date)->format('d M, Y') }}
-                                - {{ \Carbon\Carbon::parse($cs->sessionProgram->session->end_date)->format('d M, Y') }})
-                                | {{ $cs->sessionProgram->program->name ?? '—' }}
-                            </option>
-                            @endforeach
-                        </select> -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Subjects</label>
+                        <select name="subject_id[]" id="subject_select" class="my-select" style="width:100%;" multiple required>
+                        </select>
+                        <small class="text-muted">Hold CTRL to select multiple</small>
+                    </div>
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Teacher</label>
@@ -100,4 +101,38 @@
         </div>
     </div>
 </div>
+
+
+<script>
+    const selectedSubjects = @json(old('subject_id', $selectedSubjects ?? []));
+
+    function loadSubjects(classId, preselected = []) {
+        let subjectSelect = document.getElementById('subject_select');
+        subjectSelect.innerHTML = '<option value="">Loading...</option>';
+
+        fetch(`/class-subject/${classId}/subjects`)
+            .then(res => res.json())
+            .then(data => {
+                subjectSelect.innerHTML = '';
+                data.forEach(sub => {
+                    let selected = preselected.includes(sub.id) ? 'selected' : '';
+                    subjectSelect.innerHTML +=
+                        `<option value="${sub.id}" ${selected}>${sub.book_name}</option>`;
+                });
+            });
+    }
+
+    document.getElementById('class_subject').addEventListener('change', function() {
+        if (this.value) {
+            loadSubjects(this.value);
+        }
+    });
+
+    // 🔥 EDIT MODE AUTO LOAD
+    @if(isset($record))
+        loadSubjects({{ $record->class_subjects_id }}, selectedSubjects);
+    @endif
+</script>
+
+
 @endsection

@@ -23,7 +23,7 @@
                 — Roll: {{ $student->rollnum ?? 'Not assigned yet' }}
             </p>
 
-            <form action="{{ route('students.assign', $student->id) }}" method="POST">
+            <form action="{{ route('students.assign', $student->id) }}" method="POST" id="assignForm">
                 @csrf
                 <div class="row g-3">
 
@@ -34,31 +34,43 @@
                             <option value="">-- Select Session Program --</option>
                             @foreach($sessionPrograms as $sp)
                             <option value="{{ $sp->id }}"
-                                {{ isset($student) && $student->session_program_id == $sp->id ? 'selected' : '' }}>
-
-                                {{ $sp->session->sessions_name ?? 'N/A' }} |
-                                {{ \Carbon\Carbon::parse($sp->session->start_date)->format('d M, Y') }} -
-                                {{ \Carbon\Carbon::parse($sp->session->end_date)->format('d M, Y') }} |
-                                ({{ $sp->program->name ?? 'N/A' }})
+                                {{ (old('session_program_id', $student->session_program_id ?? '') == $sp->id) ? 'selected' : '' }}>
+                                {{ $sp->session?->sessions_name ?? 'N/A' }} |
+                                ({{ $sp->programs->pluck('name')->join(', ') ?: 'N/A' }})
                             </option>
                             @endforeach
                         </select>
                     </div>
 
-
+                    {{-- Program (populated after session_program selection) --}}
                     <div class="col-md-6">
-                        <label>Total Fees *</label>
-                        <input type="number" name="total_fees" class="form-control"
-                            value="{{ $existingTotal->amount ?? '' }}" id="fees" required>
+                        <label class="form-label">Program *</label>
+                        <select id="program_id" name="program_id" class="form-control" required>
+
+                            <option value="">-- Select Program --</option>
+                            {{-- options will be inserted by JS --}}
+                        </select>
                     </div>
 
-                    <div class="col-md-6">
+                    {{-- Class --}}
+                    <div class="col-md-4">
+                        <label>Class *</label>
+                        <select id="class_subject_id" name="class_subject_id" class="form-control" required>
+                            <option value="">-- Select Class --</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label>Total Fees *</label>
+                        <input type="number" name="total_fees" class="form-control" id="fees"
+                            value="{{ $existingTotal->amount ?? '' }}" required>
+                    </div>
+
+                    <div class="col-md-4">
                         <label>Advance Fees</label>
-                        <input type="number" name="advance_fees" class="form-control"
+                        <input type="number" name="advance_fees" class="form-control" id="advance_fees"
                             value="{{ $existingAdvance->amount ?? '' }}">
                     </div>
-
-
 
                     <div class="col-12 text-end">
                         <button class="btn btn-success">Assign & Save</button>
@@ -67,33 +79,110 @@
                 </div>
             </form>
 
-            <!-- <hr>
-
-            <h5>Ledger (Payments)</h5>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Amount</th>
-                        <th>Type</th>
-                        <th>Description</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($student->ledgers as $l)
-                    <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td>{{ $l->amount }}</td>
-                        <td>{{ $l->type }}</td>
-                        <td>{{ $l->description }}</td>
-                        <td>{{ $l->created_at->format('Y-m-d') }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table> -->
-
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    let sp      = document.getElementById('session_program_id');
+    let program = document.getElementById('program_id');
+    let cls     = document.getElementById('class_subject_id');
+    let feesInp = document.getElementById('fees');
+
+    // 🔹 Edit mode values (Laravel se)
+    let editProgramId = "{{ old('program_id', $student->program_id ?? '') }}";
+    let editClassId   = "{{ old('class_subject_id', $student->class_subject_id ?? '') }}";
+    let hasFees       = feesInp.value !== '';
+
+    /* ===============================
+       LOAD PROGRAMS
+    =============================== */
+    function loadPrograms(sessionProgramId, selectedProgramId = null) {
+        if (!sessionProgramId) return;
+
+        program.innerHTML = '<option>Loading...</option>';
+
+        fetch('/ajax/programs/' + sessionProgramId)
+            .then(r => r.json())
+            .then(data => {
+                program.innerHTML = '<option value="">-- Select Program --</option>';
+
+                data.forEach(p => {
+                    let selected = (selectedProgramId == p.id) ? 'selected' : '';
+                    program.innerHTML += `<option value="${p.id}" ${selected}>${p.name}</option>`;
+                });
+
+                if (selectedProgramId) {
+                    loadClasses(selectedProgramId, editClassId);
+                    if (!hasFees) loadFees(sessionProgramId, selectedProgramId);
+                }
+            });
+    }
+
+    /* ===============================
+       LOAD CLASSES
+    =============================== */
+    function loadClasses(programId, selectedClassId = null) {
+        if (!programId) return;
+
+        cls.innerHTML = '<option>Loading...</option>';
+
+        fetch('/ajax/classes/' + programId)
+            .then(r => r.json())
+            .then(data => {
+                cls.innerHTML = '<option value="">-- Select Class --</option>';
+
+                data.forEach(c => {
+                    let selected = (selectedClassId == c.id) ? 'selected' : '';
+                    cls.innerHTML += `<option value="${c.id}" ${selected}>${c.class_name}</option>`;
+                });
+            });
+    }
+
+    /* ===============================
+       LOAD FEES
+    =============================== */
+    function loadFees(sessionProgramId, programId) {
+        fetch(`/ajax/program-fees/${sessionProgramId}/${programId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.fees > 0) {
+                    feesInp.value = data.fees;
+                }
+            });
+    }
+
+    /* ===============================
+       EVENTS
+    =============================== */
+
+    // Session Program change
+    sp.addEventListener('change', function () {
+        program.innerHTML = '<option>Loading...</option>';
+        cls.innerHTML = '<option value="">-- Select Class --</option>';
+        feesInp.value = '';
+
+        loadPrograms(this.value);
+    });
+
+    // Program change
+    program.addEventListener('change', function () {
+        cls.innerHTML = '<option>Loading...</option>';
+
+        loadClasses(this.value);
+        loadFees(sp.value, this.value);
+    });
+
+    /* ===============================
+       🔥 EDIT MODE AUTO LOAD
+    =============================== */
+    if (sp.value && editProgramId) {
+        loadPrograms(sp.value, editProgramId);
+    }
+});
+</script>
+
+
 @endsection

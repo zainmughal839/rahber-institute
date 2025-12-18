@@ -26,33 +26,42 @@ class SessionController extends Controller
         return view('sessions.create');
     }
 
+
+
     public function store(Request $request)
-    {
-        $request->validate([
-            'sessions_name' => 'required|string|max:255',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'description' => 'nullable|string',
-        ]);
+{
+    $request->validate([
+        'sessions_name' => 'required|string|max:255',
+        'start_date' => 'required|string|max:10',
+        'end_date' => 'required|string|max:10',
+        'description' => 'nullable|string',
+    ]);
 
-        $this->sessionRepo->create($request->all());
+    $this->sessionRepo->create($request->all());
 
-        return redirect()->back()->with('success', 'Session created successfully.');
-    }
+    return redirect()->back()->with('success', 'Session created successfully.');
+}
 
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'sessions_name' => 'required|string|max:255',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'description' => 'nullable|string',
-        ]);
 
-        $this->sessionRepo->update($id, $request->all());
 
-        return redirect()->back()->with('success', 'Updated session successfully.');
-    }
+
+public function update(Request $request, $id)
+{
+    $request->validate([
+        'sessions_name' => 'required|string|max:255',
+        'start_date' => 'required|string|max:10',
+        'end_date' => 'required|string|max:10',
+        'description' => 'nullable|string',
+    ]);
+
+    $this->sessionRepo->update($id, $request->all());
+
+    return redirect()->back()->with('success', 'Updated session successfully.');
+}
+
+
+
+
 
     public function edit($id)
     {

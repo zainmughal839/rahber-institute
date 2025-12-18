@@ -47,4 +47,12 @@ class ProgramRepository implements ProgramRepositoryInterface
 
         return $program->delete();
     }
+
+    public function syncSubjects($programId, $subjectIds)
+{
+    $program = Program::findOrFail($programId);
+    $program->subjects()->sync($subjectIds);
+    return true;
+}
+
 }

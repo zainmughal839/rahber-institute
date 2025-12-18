@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClassTeacher;
 use App\Models\ClassSubject;
 use App\Models\Teacher;
 use App\Repositories\Interfaces\ClassTeacherRepositoryInterface;
 use Illuminate\Http\Request;
+
 
 class ClassTeacherController extends Controller
 {
@@ -37,57 +39,119 @@ class ClassTeacherController extends Controller
         return view('class_teacher.index', compact('data', 'showAll'));
     }
 
-    public function show($id)
-    {
-        $record = $this->repo->find($id);
+   public function show($id)
+{
+    $record = ClassTeacher::with([
+        'teacher',
+        'subjects',
+        'classSubject.subjects',
+        'classSubject.programs',
+        'classSubject.sessionProgram.session'
+    ])->findOrFail($id);
 
-        return view('class_teacher.show', compact('record'));
-    }
+    return view('class_teacher.show', compact('record'));
+}
+
 
     public function create()
-    {
-        $teachers = Teacher::orderBy('name')->get();
-        $classSubjects = ClassSubject::with('subjects', 'sessionProgram.session', 'sessionProgram.program')->get();
+{
+    $teachers = Teacher::orderBy('name')->get();
 
-        return view('class_teacher.create', compact('teachers', 'classSubjects'));
-    }
+    $classSubjects = ClassSubject::with([
+        'subjects',
+        'sessionProgram.session',
+        'programs'
+    ])->get();
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'class_subjects_id' => 'required|exists:class_subjects,id',
-            'teacher_id' => 'required|exists:teachers,id',
-            'status' => 'required|in:active,inactive',
-            'desc' => 'nullable|string',
-        ]);
+    return view('class_teacher.create', compact('teachers', 'classSubjects'));
+}
 
-        $this->repo->store($request->only(['class_subjects_id', 'teacher_id', 'status', 'desc']));
 
-        return redirect()->route('class-teacher.index')->with('success', 'Teacher assigned to class successfully.');
-    }
+
+public function store(Request $request)
+{
+    $request->validate([
+        'class_subjects_id' => 'required|exists:class_subjects,id',
+        'teacher_id' => 'required|exists:teachers,id',
+        'subject_id' => 'required|array',
+        'subject_id.*' => 'exists:subjects,id',
+        'status' => 'required|in:active,inactive',
+        'desc' => 'nullable|string',
+    ]);
+
+    // 1️⃣ Create class-teacher
+    $classTeacher = $this->repo->store(
+        $request->only([
+            'class_subjects_id',
+            'teacher_id',
+            'status',
+            'desc'
+        ])
+    );
+
+    // 2️⃣ Attach multiple subjects
+    $classTeacher->subjects()->sync($request->subject_id);
+
+    return redirect()
+        ->route('class-teacher.index')
+        ->with('success', 'Teacher assigned with subjects successfully.');
+}
+
+
 
     public function edit($id)
-    {
-        $record = $this->repo->find($id);
-        $teachers = Teacher::orderBy('name')->get();
-        $classSubjects = ClassSubject::with('subjects', 'sessionProgram.session', 'sessionProgram.program')->get();
+{
+    $record = $this->repo->find($id)->load('subjects');
 
-        return view('class_teacher.create', compact('record', 'teachers', 'classSubjects'));
-    }
+    $teachers = Teacher::orderBy('name')->get();
+
+    $classSubjects = ClassSubject::with([
+        'subjects',
+        'sessionProgram.session',
+        'programs'
+    ])->get();
+
+    // 🔥 selected subject ids
+    $selectedSubjects = $record->subjects->pluck('id')->toArray();
+
+    return view(
+        'class_teacher.create',
+        compact('record', 'teachers', 'classSubjects', 'selectedSubjects')
+    );
+}
+
+
+    
 
     public function update(Request $request, $id)
-    {
-        $request->validate([
-            'class_subjects_id' => 'required|exists:class_subjects,id',
-            'teacher_id' => 'required|exists:teachers,id',
-            'status' => 'required|in:active,inactive',
-            'desc' => 'nullable|string',
-        ]);
+{
+    $request->validate([
+        'class_subjects_id' => 'required|exists:class_subjects,id',
+        'teacher_id' => 'required|exists:teachers,id',
+        'subject_id' => 'required|array',
+        'subject_id.*' => 'exists:subjects,id',
+        'status' => 'required|in:active,inactive',
+        'desc' => 'nullable|string',
+    ]);
 
-        $this->repo->update($id, $request->only(['class_subjects_id', 'teacher_id', 'status', 'desc']));
+    $classTeacher = $this->repo->update(
+        $id,
+        $request->only([
+            'class_subjects_id',
+            'teacher_id',
+            'status',
+            'desc'
+        ])
+    );
 
-        return redirect()->route('class-teacher.index')->with('success', 'Assignment updated.');
-    }
+    $classTeacher->subjects()->sync($request->subject_id);
+
+    return redirect()
+        ->route('class-teacher.index')
+        ->with('success', 'Assignment updated successfully.');
+}
+
+
 
     public function destroy($id)
     {
@@ -95,4 +159,12 @@ class ClassTeacherController extends Controller
 
         return back()->with('success', 'Assignment deleted.');
     }
+
+    public function getSubjects($id)
+{
+    $class = ClassSubject::with('subjects:id,book_name')->findOrFail($id);
+
+    return response()->json($class->subjects);
+}
+
 }

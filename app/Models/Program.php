@@ -17,4 +17,28 @@ class Program extends Model
         'program_code',
         'description',
     ];
+
+  public function subjects()
+{
+    return $this->belongsToMany(Subject::class, 'program_subject');
+}
+
+public function parts()
+{
+    return $this->hasMany(ProgramPart::class);
+}
+
+public function tasks()
+{
+    return $this->belongsToMany(Task::class, 'program_task');
+}
+
+public function classSubjects()
+{
+    return $this->belongsToMany(ClassSubject::class, 'class_subject_program');
+}
+
+
+
+
 }

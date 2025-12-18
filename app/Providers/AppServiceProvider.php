@@ -84,11 +84,23 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(ClassTeacherRepositoryInterface::class, ClassTeacherRepository::class);
 
-        // / user teacher assigment
+        // user teacher assigment
         $this->app->bind(
             \App\Repositories\Interfaces\UserAssignmentRepositoryInterface::class,
             \App\Repositories\Eloquent\UserAssignmentRepository::class
         );
+
+        // task cat
+        $this->app->bind(
+        \App\Repositories\Interfaces\TaskCatRepositoryInterface::class,
+        \App\Repositories\Eloquent\TaskCatRepository::class
+    );
+
+    // task
+     $this->app->bind(
+        \App\Repositories\Interfaces\TaskRepositoryInterface::class,
+        \App\Repositories\Eloquent\TaskRepository::class
+    );
     }
 
     /**

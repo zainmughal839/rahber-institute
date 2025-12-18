@@ -13,4 +13,7 @@ interface ProgramRepositoryInterface
     public function update($id, array $data);
 
     public function delete($id);
+    
+    public function syncSubjects($programId, $subjectIds);
+
 }

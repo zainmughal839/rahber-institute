@@ -24,4 +24,11 @@ class Teacher extends Model
     protected $casts = [
         'academic_details' => 'array',
     ];
+
+
+    public function taskResponses()
+{
+    return $this->hasMany(TaskResponse::class);
+}
+
 }

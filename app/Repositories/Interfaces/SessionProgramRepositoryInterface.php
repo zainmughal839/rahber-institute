@@ -15,4 +15,8 @@ interface SessionProgramRepositoryInterface
     public function update($id, array $data);
 
     public function delete($id);
+
+    public function getProgramsBySession($sessionId);
+public function deleteBySession($sessionId);
+
 }

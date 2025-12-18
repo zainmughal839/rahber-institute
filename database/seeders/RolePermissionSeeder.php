@@ -65,11 +65,32 @@ class RolePermissionSeeder extends Seeder
             'class-teacher.update',
             'class-teacher.delete',
 
-             // User Assignments
+            // User Assignments
             'user-assignment.index',
             'user-assignment.create',
             'user-assignment.update',
             'user-assignment.delete',
+
+
+
+ // task-cat Assignments
+            'task-cat.index',
+            'task-cat.create',
+            'task-cat.update',
+            'task-cat.delete',
+
+
+            // task Assignments
+            'task.index',
+            'task.create',
+            'task.update',
+            'task.delete',
+
+            // task Assignments
+            'announcement.index',
+            'announcement.create',
+            'announcement.update',
+            'announcement.delete',
 
             // ROLES
             'role.index',
@@ -104,6 +125,7 @@ class RolePermissionSeeder extends Seeder
 
             'session_program.index',
             'session_program.create',
+            
         ]);
     }
 }

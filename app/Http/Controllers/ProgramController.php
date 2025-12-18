@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Repositories\Interfaces\ProgramRepositoryInterface;
 use Illuminate\Http\Request;
+use App\Models\Subject;
 use Illuminate\Validation\Rule;
 
 class ProgramController extends Controller
@@ -18,7 +19,6 @@ class ProgramController extends Controller
     public function index()
     {
         $programs = $this->programRepo->paginate(10);
-
         return view('programs.index', compact('programs'));
     }
 
@@ -26,7 +26,6 @@ class ProgramController extends Controller
     {
         $programs = $this->programRepo->all();
         $showAll = true;
-
         return view('programs.index', compact('programs', 'showAll'));
     }
 
@@ -44,31 +43,39 @@ class ProgramController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $this->programRepo->create($request->all());
+        $this->programRepo->create($request->only([
+            'name',
+            'shortname',
+            'program_code',
+            'description',
+        ]));
 
-        return redirect()->back()->with('success', 'Program Created successfully.');
+        return back()->with('success', 'Program created successfully.');
     }
 
     public function edit($id)
     {
         $program = $this->programRepo->find($id);
-
-        // Same create.blade.php ko use kar rahe hain, bas $program pass kar diya
         return view('programs.create', compact('program'));
     }
 
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('programs')->ignore($id)],
+            'name' => ['required', 'string', Rule::unique('programs')->ignore($id)],
             'shortname' => 'nullable|string|max:50',
-            'program_code' => ['nullable', 'string', 'max:50', Rule::unique('programs')->ignore($id)],
+            'program_code' => ['nullable', 'string', Rule::unique('programs')->ignore($id)],
             'description' => 'nullable|string',
         ]);
 
-        $this->programRepo->update($id, $request->all());
+        $this->programRepo->update($id, $request->only([
+            'name',
+            'shortname',
+            'program_code',
+            'description',
+        ]));
 
-        return redirect()->back()->with('success', 'Program Updated successfully.');
+        return back()->with('success', 'Program updated successfully.');
     }
 
     public function destroy($id)

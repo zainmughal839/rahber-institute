@@ -25,6 +25,14 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 </head>
 
@@ -48,7 +56,6 @@
                 </ul>
                 <ul class="navbar-nav ms-auto">
 
-
                     <li class="nav-item">
                         <a class="nav-link" href="#" data-lte-toggle="fullscreen">
                             <i data-lte-icon="maximize" class="bi bi-arrows-fullscreen"></i>
@@ -64,8 +71,6 @@
                                 {{ Auth::user()->name ?? 'User' }}
                             </span>
                         </a>
-
-
 
                         <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
                             <li class="user-header text-bg-primary">
@@ -116,7 +121,6 @@
 
     </div>
 
-
     <!-- END WRAPPER -->
 
     <!-- JS -->
@@ -129,74 +133,141 @@
 
     <script src="{{ asset('assets/js/adminlte.js') }}"></script>
 
+    <!-- task & annuoncement js -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            /* ================= TOGGLE FIELDS ================= */
+            function toggleFields() {
+                let audience = $('#audience-select').val() || [];
+                $('.teacher-field').toggle(audience.includes("teacher"));
+                $('.student-field').toggle(audience.includes("student"));
+            }
+            toggleFields();
+            $('#audience-select').on('change', toggleFields);
+            /* ================= LOAD PROGRAMS ================= */
+            function loadPrograms(spId, selectedPrograms = []) {
+                $('#program-select').empty();
+                if (!spId) return;
+                $.get(`/ajax/get-programs/${spId}`, function(programs) {
+                    programs.forEach(p => {
+                        $('#program-select').append(
+                            `<option value="${p.id}" ${selectedPrograms.includes(p.id) ? 'selected' : ''}>
+                        ${p.name}
+                     </option>`
+                        );
+                    });
+                });
+            }
+            /* ================= LOAD STUDENTS (NO DUPLICATES) ================= */
+            function loadStudents(programIds = [], categoryIds = [], selectedStudents = []) {
+                $('#student-checkbox-list').html('');
+                $('#select-all-students').prop('checked', false);
+                if (programIds.length === 0) {
+                    $('#student-checkbox-list').html('<small class="text-muted">Select program first</small>');
+                    return;
+                }
+                $.ajax({
+                    url: "{{ route('ajax.students.filter') }}",
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        program_ids: programIds,
+                        category_ids: categoryIds
+                    },
+                    success: function(students) {
+                        if (!students.length) {
+                            $('#student-checkbox-list').html(
+                                '<small class="text-muted">No students found</small>');
+                            return;
+                        }
+                        students.forEach(s => {
+                            let checked = selectedStudents.includes(s.id) ? 'checked' : '';
+                            $('#student-checkbox-list').append(`
+                        <div class="form-check">
+                            <input class="form-check-input student-checkbox"
+                                   type="checkbox"
+                                   name="student_ids[]"
+                                   value="${s.id}"
+                                   ${checked}>
+                            <label class="form-check-label">
+                                ${s.name} (${s.rollnum ?? ''})
+                            </label>
+                        </div>
+                    `);
+                        });
+                    }
+                });
+            }
+            /* ================= EVENTS ================= */
+            $('select[name="session_program_id"]').on('change', function() {
+                loadPrograms(this.value);
+                $('#student-checkbox-list').html(
+                    '<small class="text-muted">Please select program</small>');
+            });
+            $('#program-select, #stu-category-select').on('change', function() {
+                loadStudents(
+                    $('#program-select').val() || [],
+                    $('#stu-category-select').val() || []
+                );
+            });
+            $(document).on('change', '#select-all-students', function() {
+                $('.student-checkbox').prop('checked', this.checked);
+            });
+            /* ================= EDIT MODE ================= */
+            if (window.editTask) {
+                loadPrograms(
+                    editTask.sessionProgramId,
+                    editTask.programIds,
+                    editTask.studentIds
+                );
+                loadStudents(
+                    editTask.programIds,
+                    editTask.categoryIds,
+                    editTask.studentIds
+                );
+            }
+        });
+    </script>
+
+    <!-- muliple option -->
+    <script>
+        $(document).ready(function() {
+            $('.my-select').select2({
+                placeholder: "Select Multiple option",
+                allowClear: true,
+                closeOnSelect: false
+            });
+        });
+
+        function getSelected() {
+            var selected = $('.my-select').val();
+            alert("yes" + selected.join(", "));
+        }
+    </script>
 
     <!-- PopUp delete -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-    document.querySelectorAll('.delete-btn').forEach(button => {
-        button.addEventListener('click', function() {
-
-            let id = this.getAttribute('data-id');
-
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "This session will be deleted permanently!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, delete it!'
-            }).then((result) => {
-
-                if (result.isConfirmed) {
-                    document.getElementById('delete-form-' + id).submit();
-                }
-
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                let id = this.getAttribute('data-id');
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "This session will be deleted permanently!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('delete-form-' + id).submit();
+                    }
+                });
             });
-
         });
-    });
     </script>
-
-
-
-    <!-- student create  -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-
-        let select = document.getElementById('session_program_id');
-        let feesInput = document.getElementById('fees');
-
-        if (!select || !feesInput) return;
-
-        // Check if editing existing value
-        let existingFees = "{{ $student->fees_amount ?? '' }}";
-
-        // ✔ If editing and fees already exist → DO NOT auto-load fees
-        let allowAutoLoad = (existingFees === "" || existingFees === "0");
-
-        function loadSPInfo(spId) {
-            if (!spId || !allowAutoLoad) return; // 🚫 Stop auto-load if editing existing fees
-
-            fetch("{{ url('session-program-info') }}/" + spId)
-                .then(res => res.json())
-                .then(data => {
-                    feesInput.value = data.fees;
-                })
-                .catch(err => console.error(err));
-        }
-
-        // Only auto-load when new assignment (not edit)
-        select.addEventListener('change', function() {
-            loadSPInfo(this.value);
-        });
-
-    });
-    </script>
-
-    <!-- teacher create -->
-
 
 
 

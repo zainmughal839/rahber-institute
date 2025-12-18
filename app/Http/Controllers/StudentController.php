@@ -82,6 +82,9 @@ class StudentController extends Controller
             'address' => 'nullable|string',
             'description' => 'nullable|string',
             'stu_category_id' => 'nullable|exists:stu_category,id',
+            'stu_category_id' => 'nullable|exists:stu_category,id',
+'class_subject_id' => 'nullable|exists:class_subjects,id',
+
         ]);
 
         $student = $this->students->create($validated);
@@ -98,107 +101,135 @@ class StudentController extends Controller
             ->with('success', 'Student saved. Proceed to Step 2.');
     }
 
-    public function showAssignForm($id)
-    {
-        $student = $this->students->find($id);
-        $sessionPrograms = SessionProgram::with(['session', 'program'])->get();
+   public function showAssignForm($id)
+{
+    $student = $this->students->find($id);
 
-        // get existing debit (total fees)
-        $existingTotal = AllLedger::where('student_id', $student->id)
-            ->where('type', 'debit')
-            ->first();
+    // Load session_program rows (each can have many programs)
+    // Eager load programs to avoid N+1
+    $sessionPrograms = SessionProgram::with(['session', 'programs'])->get();
 
-        // get existing credit (advance fees)
-        $existingAdvance = AllLedger::where('student_id', $student->id)
-            ->where('type', 'credit')
-            ->first();
+    // get existing debit (total fees)
+    $existingTotal = AllLedger::where('student_id', $student->id)
+        ->where('type', 'debit')
+        ->first();
 
-        return view('students.assign_step2', compact('student', 'sessionPrograms', 'existingTotal', 'existingAdvance'));
-    }
+    // get existing credit (advance fees)
+    $existingAdvance = AllLedger::where('student_id', $student->id)
+        ->where('type', 'credit')
+        ->first();
 
-    public function assignSessionProgram(Request $request, $id)
-    {
-        $student = $this->students->find($id);
+    return view('students.assign_step2', compact('student', 'sessionPrograms', 'existingTotal', 'existingAdvance'));
+}
 
-        $validated = $request->validate([
-            'session_program_id' => 'required|exists:session_program,id',
-            'total_fees' => 'required|numeric|min:0',
-            'advance_fees' => 'nullable|numeric|min:0',
+
+
+public function assignSessionProgram(Request $request, $id)
+{
+    $student = $this->students->find($id);
+
+    $validated = $request->validate([
+        'session_program_id' => 'required|exists:session_program,id',
+        'program_id' => 'required|exists:programs,id',
+        'class_subject_id' => 'required|exists:class_subjects,id',
+        'total_fees' => 'required|numeric|min:0',
+        'advance_fees' => 'nullable|numeric|min:0',
+    ]);
+
+    $newSpId       = $validated['session_program_id'];
+    $newProgramId = $validated['program_id'];
+    $classId      = $validated['class_subject_id'];
+    $total        = (float) $validated['total_fees'];
+    $advance      = (float) ($validated['advance_fees'] ?? 0);
+
+    DB::transaction(function () use (
+        $student,
+        $newSpId,
+        $newProgramId,
+        $classId,
+        $total,
+        $advance
+    ) {
+
+        // ✅ STUDENT UPDATE (FIXED)
+        $student->update([
+            'session_program_id' => $newSpId,
+            'program_id'         => $newProgramId,
+            'class_subject_id'   => $classId,
         ]);
 
-        $newSpId = $validated['session_program_id'];
-        $total = floatval($validated['total_fees']);
-        $advance = floatval($validated['advance_fees']);
+        // --- TOTAL FEES (DEBIT) ---
+        $totalRow = AllLedger::where('student_id', $student->id)
+            ->where('ledger_category', 'total_fee')
+            ->first();
 
-        DB::transaction(function () use ($student, $newSpId, $total, $advance) {
-            $oldSpId = $student->session_program_id;
+        if ($totalRow) {
+            $totalRow->update([
+                'amount' => $total,
+                'session_program_id' => $newSpId,
+                'type' => 'debit',
+                'ledger_category' => 'total_fee',
+            ]);
+        } else {
+            AllLedger::create([
+                'student_id' => $student->id,
+                'amount' => $total,
+                'type' => 'debit',
+                'description' => 'Total Program Fees',
+                'session_program_id' => $newSpId,
+                'ledger_category' => 'total_fee',
+            ]);
+        }
 
-            // Update student session_program
-            $student->update(['session_program_id' => $newSpId]);
+        // --- ADVANCE FEES (CREDIT) ---
+        $advanceRow = AllLedger::where('student_id', $student->id)
+            ->where('ledger_category', 'advance')
+            ->first();
 
-            // --- Total Fees (DEBIT) ---
-            $totalRow = AllLedger::where('student_id', $student->id)
-                ->where('ledger_category', 'total_fee')
+        if ($advanceRow) {
+            $advanceRow->update([
+                'amount' => $advance,
+                'session_program_id' => $newSpId,
+                'type' => 'credit',
+                'ledger_category' => 'advance',
+            ]);
+        } elseif ($advance > 0) {
+            AllLedger::create([
+                'student_id' => $student->id,
+                'amount' => $advance,
+                'type' => 'credit',
+                'description' => 'Advance Fee Payment',
+                'session_program_id' => $newSpId,
+                'ledger_category' => 'advance',
+            ]);
+        }
+
+        // --- ROLL NUMBER ---
+        if ($advance > 0 && empty($student->rollnum)) {
+            $yearMonth = now()->format('ym');
+
+            $lastStudent = Student::where('rollnum', 'LIKE', $yearMonth.'%')
+                ->orderBy('rollnum', 'DESC')
+                ->lockForUpdate()
                 ->first();
 
-            if ($totalRow) {
-                $totalRow->update([
-                    'amount' => $total,
-                    'session_program_id' => $newSpId,
-                    'type' => 'debit',
-                    'ledger_category' => 'total_fee',
-                ]);
-            } else {
-                AllLedger::create([
-                    'student_id' => $student->id,
-                    'amount' => $total,
-                    'type' => 'debit',
-                    'description' => 'Total Program Fees',
-                    'session_program_id' => $newSpId,
-                    'ledger_category' => 'total_fee',
-                ]);
-            }
+            $lastNumber = $lastStudent ? intval(substr($lastStudent->rollnum, 4)) : 0;
+            $newRoll = $yearMonth . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
 
-            // --- Advance Fees (CREDIT) ---
-            $advanceRow = AllLedger::where('student_id', $student->id)
-                ->where('ledger_category', 'advance')
-                ->first();
+            $student->update(['rollnum' => $newRoll]);
+        }
+    });
 
-            if ($advanceRow) {
-                $advanceRow->update([
-                    'amount' => $advance,
-                    'session_program_id' => $newSpId,
-                    'type' => 'credit',
-                    'ledger_category' => 'advance',
-                ]);
-            } elseif ($advance > 0) {
-                AllLedger::create([
-                    'student_id' => $student->id,
-                    'amount' => $advance,
-                    'type' => 'credit',
-                    'description' => 'Advance Fee Payment',
-                    'session_program_id' => $newSpId,
-                    'ledger_category' => 'advance',
-                ]);
-            }
+    return redirect()
+        ->route('students.index')
+        ->with('success', 'Session, Program, Class & Fees updated successfully.');
+}
 
-            // --- Generate Roll Number if not assigned ---
-            if ($advance > 0 && empty($student->rollnum)) {
-                $yearMonth = now()->format('ym');
-                $lastStudent = Student::where('rollnum', 'LIKE', $yearMonth.'%')
-                    ->orderBy('rollnum', 'DESC')
-                    ->lockForUpdate()
-                    ->first();
 
-                $lastNumber = $lastStudent ? intval(substr($lastStudent->rollnum, 4)) : 0;
-                $newRoll = $yearMonth.str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
 
-                $student->update(['rollnum' => $newRoll]);
-            }
-        });
 
-        return redirect()->route('students.index')->with('success', 'Session & fees updated successfully.');
-    }
+
+
 
     public function edit($id)
     {
@@ -220,6 +251,9 @@ class StudentController extends Controller
             'address' => 'nullable|string',
             'description' => 'nullable|string',
             'stu_category_id' => 'nullable|exists:stu_category,id',
+            'stu_category_id' => 'nullable|exists:stu_category,id',
+'class_subject_id' => 'nullable|exists:class_subjects,id',
+
         ]);
 
         $this->students->update($id, $validated);
@@ -305,4 +339,42 @@ class StudentController extends Controller
 
         return view('students.all_student_ledger', compact('data'));
     }
+
+
+    /**
+ * Return programs linked to a specific session_program (by id)
+ * used by AJAX to populate the Program dropdown after SessionProgram is selected.
+ */
+public function getProgramsBySessionProgram($id)
+{
+    return DB::table('session_program_program as spp')
+        ->join('programs','programs.id','=','spp.program_id')
+        ->where('spp.session_program_id',$id)
+        ->select('programs.id','programs.name')
+        ->get();
+}
+
+public function getClassesByProgram($programId)
+{
+    return DB::table('class_subject_program as csp')
+        ->join('class_subjects','class_subjects.id','=','csp.class_subject_id')
+        ->where('csp.program_id',$programId)
+        ->select('class_subjects.id','class_subjects.class_name')
+        ->get();
+}
+
+public function getProgramFees($sessionProgramId, $programId)
+{
+    $row = DB::table('session_program_program')
+        ->where('session_program_id', $sessionProgramId)
+        ->where('program_id', $programId)
+        ->first();
+
+    return response()->json([
+        'fees' => $row?->fees ?? 0,
+        'seats' => $row?->seats ?? 0,
+    ]);
+}
+
+
 }

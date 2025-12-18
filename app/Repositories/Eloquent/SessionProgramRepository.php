@@ -54,4 +54,17 @@ class SessionProgramRepository implements SessionProgramRepositoryInterface
             ->latest()
             ->get();
     }
+
+    public function getProgramsBySession($sessionId)
+{
+    return SessionProgram::where('session_id', $sessionId)
+        ->pluck('program_id')
+        ->toArray();
+}
+
+public function deleteBySession($sessionId)
+{
+    return SessionProgram::where('session_id', $sessionId)->delete();
+}
+
 }

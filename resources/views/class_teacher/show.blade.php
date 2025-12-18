@@ -63,10 +63,11 @@
                     <th style="width: 200px;">Class Name</th>
                     <td>{{ $record->classSubject->class_name ?? '-' }}</td>
                 </tr>
-               <tr>
-    <th>Subjects</th>
+                
+                <tr>
+    <th>Session Program Subjects</th>
     <td>
-        @if($record->classSubject && $record->classSubject->subjects->count())
+        @if($record->classSubject?->subjects->count())
             {{ $record->classSubject->subjects->pluck('book_name')->implode(', ') }}
         @else
             -
@@ -74,23 +75,10 @@
     </td>
 </tr>
 
-
-<tr>
-    <th>Subject Short Name</th>
-    <td>
-        @if($record->classSubject && $record->classSubject->subjects->count())
-            {{ $record->classSubject->subjects->pluck('book_short_name')->implode(', ') }}
-        @else
-            -
-        @endif
-    </td>
-</tr>
-
-
-<tr>
-    <th>Description</th>
-    <td>{{ $record->classSubject->desc ?? '-' }}</td>
-</tr>
+                <tr>
+                    <th>Description</th>
+                    <td>{{ $record->classSubject->desc ?? '-' }}</td>
+                </tr>
 
             </table>
 
@@ -103,21 +91,64 @@
 
             <table class="table table-bordered">
                 <tr>
-                    <th style="width: 200px;">Program</th>
-                    <td>{{ $record->classSubject->sessionProgram->program->name  ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <th>Program Code</th>
-                    <td>{{ $record->classSubject->sessionProgram->program->program_code ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <th>Session Start</th>
-                    <td>{{ \Carbon\Carbon::parse($record->classSubject->sessionProgram->session->start_date)->format('d M Y') }}
+                    <th style="width:200px;">Program</th>
+                    <td>
+                        @if($record->classSubject?->programs->count())
+                        {{ $record->classSubject->programs->pluck('name')->implode(', ') }}
+                        @else
+                        -
+                        @endif
                     </td>
                 </tr>
+
+
+
+<tr>
+    <th>Teacher Assigned Subjects</th>
+    <td>
+        @if($record->subjects->count())
+            {{ $record->subjects->pluck('book_name')->implode(', ') }}
+        @else
+            -
+        @endif
+    </td>
+</tr>
+
+
+<tr>
+    <th>Assigned Subject Short Names</th>
+    <td>
+        @if($record->subjects->count())
+            {{ $record->subjects->pluck('book_short_name')->implode(', ') }}
+        @else
+            -
+        @endif
+    </td>
+</tr>
+
+
+                <tr>
+                    <th>Program Code</th>
+                    <td>
+                        @if($record->classSubject?->programs->count())
+                        {{ $record->classSubject->programs->pluck('program_code')->implode(', ') }}
+                        @else
+                        -
+                        @endif
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>Session Start</th>
+                    <td>
+                        {{ $record->classSubject?->sessionProgram?->session?->start_date ?? '-' }}
+                    </td>
+                </tr>
+
                 <tr>
                     <th>Session End</th>
-                    <td>{{ \Carbon\Carbon::parse($record->classSubject->sessionProgram->session->end_date)->format('d M Y')  }}
+                    <td>
+                        {{ $record->classSubject?->sessionProgram?->session?->end_date ?? '-' }}
                     </td>
                 </tr>
 

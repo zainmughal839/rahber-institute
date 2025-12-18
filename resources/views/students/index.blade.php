@@ -88,18 +88,27 @@
                                         </span>
                                     </td> -->
 
-                                    <td>
-                                        @php
-                                        $sp = $s->sessionProgram;
-                                        @endphp
+                                  <td>
+    @php 
+        $sp = $s->sessionProgram; 
+        $program = $s->program; 
+    @endphp
 
-                                        <small class="text-muted">
-                                            {{ $sp->session->start_date ?? '' }} -
-                                            {{ $sp->session->end_date ?? '' }}
-                                            /
-                                            {{ $sp->program->name ?? '' }}
-                                        </small>
-                                    </td>
+    <small class="text-muted">
+
+        {{-- Session dates --}}
+        {{ $sp?->session?->start_date ? \Carbon\Carbon::parse($sp->session->start_date)->format('d M Y') : '' }}
+        -
+        {{ $sp?->session?->end_date ? \Carbon\Carbon::parse($sp->session->end_date)->format('d M Y') : '' }}
+
+        /
+
+        {{-- Student Program (single program_id) --}}
+        {{ $program?->name ?? 'No Program' }}
+
+    </small>
+</td>
+
 
                                     @canany(['student.update', 'student.delete'])
                                     <td class="text-center">
