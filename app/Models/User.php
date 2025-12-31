@@ -38,4 +38,13 @@ class User extends Authenticatable
     {
         return $this->hasOne(UserAssignment::class, 'user_id');
     }
+
+    // App\Models\User.php
+// App\Models\User.php
+public function student()
+{
+    return $this->hasOne(Student::class, 'email', 'email');
+}
+
+
 }

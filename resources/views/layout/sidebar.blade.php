@@ -1,13 +1,38 @@
 @php
 use Illuminate\Support\Facades\Route;
+use Carbon\Carbon;
 $currentRoute = Route::currentRouteName();
-@endphp
 
-@php
 $assignment = auth()->check() ? auth()->user()->userAssignment : null;
+
+// Student ke liye assigned papers load karo
+$assignedPapers = collect();
+
+if (session('is_panel_user') && $assignment && $assignment->panel_type === 'student') {
+    $studentId = $assignment->assignable_id;
+
+    // Sirf woh papers jinke tasks mein student hai
+    $assignedPapers = \App\Models\McqPaper::with('task')
+        ->whereHas('students', fn($q) => $q->where('students.id', $studentId))
+        ->whereHas('task') // task must exist
+        ->get()
+        ->filter(function ($paper) {
+            $now = Carbon::now();
+            $paperDate = $paper->task->paper_date;
+            $taskEnd = $paper->task->task_end;
+
+            // paper_date set ho aur current time >= paper_date
+            // task_end set ho aur current time < task_end
+            return $paperDate && $now->greaterThanOrEqualTo($paperDate)
+                && (!$taskEnd || $now->lessThan($taskEnd));
+        });
+}
 @endphp
 
-<aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+
+
+
+<aside class="app-sidebar bg-body-secondary shadow no-print" data-bs-theme="dark">
     <div class="sidebar-brand">
         <a href="{{ route('dashboard') }}" class="brand-link">
             <span class="brand-text fw-light">RAHBER INSTITUTE</span>
@@ -230,10 +255,13 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                 </li>
                 @endcan
 
-                @canany(['task-cat.index', 'task-cat.create', 'task.index', 'task.create', 'announcement.create', 'announcement.index'])
+                @canany(['task-cat.index', 'task-cat.create', 'task.index', 'task.create', 'announcement.create',
+                'announcement.index', 'test-cat.index', 'test-cat.create', 'mcq-category.index', 'mcq-category.create',
+                'mcq.banks.index', 'mcq.banks.create',
+                'assign-paper.index', 'assign-paper.create'])
                 <li class="nav-header">Task, Announcement </li>
                 <li
-                    class="nav-item {{ str_starts_with($currentRoute, 'task-cat.') || str_starts_with($currentRoute, 'tasks.') || str_starts_with($currentRoute, 'announcements.') ? 'menu-open' : '' }}">
+                    class="nav-item {{ str_starts_with($currentRoute, 'task-cat.') || str_starts_with($currentRoute, 'tasks.') || str_starts_with($currentRoute, 'announcements.') || str_starts_with($currentRoute, 'test-cat.') ? 'menu-open' : '' }}">
                     <a href="#" class="nav-link">
                         <i class="nav-icon bi bi-list-task"></i>
                         <p>Task, Announcement<i class="nav-arrow bi bi-chevron-right"></i></p>
@@ -251,12 +279,22 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                         </li>
                         @endcan
 
+                        @can('test-cat.index')
+                        <li class="nav-item">
+                            <a href="{{ route('test-cat.index') }}"
+                                class="nav-link {{ $currentRoute === 'test-cat.index' ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-circle"></i>
+                                <p>Test Categories</p>
+                            </a>
+                        </li>
+                        @endcan
+
                         @can('task.index')
                         <li class="nav-item">
                             <a href="{{ route('tasks.index') }}"
                                 class="nav-link {{ $currentRoute === 'tasks.index' ? 'active' : '' }}">
                                 <i class="nav-icon bi bi-circle"></i>
-                                <p>Task Assign</p>
+                                <p>Task Create</p>
                             </a>
                         </li>
                         @endcan
@@ -273,6 +311,66 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                     </ul>
                 </li>
                 @endcan
+
+                @canany(['mcq-category.index', 'mcq-category.create', 'mcq.banks.index', 'mcq.banks.create',
+                'assign-paper.index', 'assign-paper.create'])
+                <li
+                    class="nav-item {{ str_starts_with($currentRoute, 'mcq.categories.') || str_starts_with($currentRoute, 'mcq.banks.') || str_starts_with($currentRoute, 'mcq.assign.') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon bi bi-list-task"></i>
+                        <p>Paper Creation<i class="nav-arrow bi bi-chevron-right"></i></p>
+                    </a>
+
+                    <ul class="nav nav-treeview">
+
+                        @can('mcq-category.index')
+                        <li class="nav-item">
+                            <a href="{{ route('mcq.categories.index') }}"
+                                class="nav-link {{ request()->routeIs('mcq.categories.*') ? 'active' : '' }}">
+                                <i class="bi bi-circle nav-icon"></i>
+                                <p>MCQS Books Head</p>
+                            </a>
+                        </li>
+                        @endcan
+
+                        @can('mcq.banks.index')
+                        <li class="nav-item">
+                            <a href="{{ route('mcq.banks.index') }}"
+                                class="nav-link {{ request()->routeIs('mcq.banks.*') ? 'active' : '' }}">
+                                <i class="bi bi-circle nav-icon"></i>
+                                <p>MCQ Categories</p>
+                            </a>
+                        </li>
+                        @endcan
+
+                        @can('assign-paper.index')
+                        <li class="nav-item">
+                            <a href="{{ route('mcq.assign.index') }}"
+                                class="nav-link {{ request()->routeIs('mcq.assign.*') ? 'active' : '' }}">
+                                <i class="bi bi-circle nav-icon"></i>
+                                <p>Assign MCQ Paper</p>
+                            </a>
+                        </li>
+                        @endcan
+
+                        
+                        
+                        @can('assign-paper.check-result')
+                        <li class="nav-item">
+                            <a href="{{ route('mcq.assign.check-result') }}"
+                                class="nav-link {{ request()->routeIs('mcq.assign.check-result') ? 'active' : '' }}">
+                                <i class="bi bi-search nav-icon"></i>
+                                <p>Check Result</p>
+                            </a>
+                        </li>
+                        @endcan 
+
+                       
+
+
+                    </ul>
+                </li>
+                @endcanany
 
                 @canany(['role.index', 'role.create', 'user.index', 'user.create', 'user-assignment.index',
                 'user-assignment.create'])
@@ -375,6 +473,44 @@ $assignment = auth()->check() ? auth()->user()->userAssignment : null;
                         <p>Profile Setting</p>
                     </a>
                 </li>
+                
+
+                <!-- Student Panel: Assigned MCQ Papers -->
+                {{-- @if($assignedPapers->count() > 0)
+                    <li class="nav-item">
+                        <a href="javascript:void(0)" class="nav-link">
+                            <i class="bi bi-journal-text nav-icon"></i>
+                            <p>
+                                Assigned MCQ Papers
+                                <i class="fas fa-angle-left right"></i>
+                                <span class="badge badge-info right">{{ $assignedPapers->count() }}</span>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            @foreach($assignedPapers as $paper)
+                                <li class="nav-item">
+                                    <a href="{{ route('mcq.assign.view', $paper->id) }}"
+                                    class="nav-link {{ request()->routeIs('mcq.assign.view') && request()->route('mcq_paper') == $paper->id ? 'active' : '' }}">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>
+                                            {{ Str::limit($paper->title, 30) }}<br>
+                                            <small class="text-muted" style="font-size:10px;">
+                                                Available till:
+                                                @if($paper->task->task_end)
+                                                    {{ Carbon::parse($paper->task->task_end)->format('d M, h:i A') }}
+                                                @else
+                                                    No deadline
+                                                @endif
+                                            </small>
+                                        </p>
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </li>
+                @endif --}}
+
+
 
             </ul>
         </nav>

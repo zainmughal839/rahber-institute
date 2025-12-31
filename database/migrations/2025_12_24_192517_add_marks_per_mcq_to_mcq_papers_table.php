@@ -1,0 +1,27 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+   public function up()
+{
+    Schema::table('mcq_papers', function (Blueprint $table) {
+        $table->decimal('marks_per_mcq', 8, 2)->default(1)->after('per_mcqs_time');
+    });
+}
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('mcq_papers', function (Blueprint $table) {
+            //
+        });
+    }
+};

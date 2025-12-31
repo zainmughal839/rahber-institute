@@ -10,6 +10,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Rahber Dashboard</title>
 
     <!--  Bootstrap + Icons -->
@@ -36,7 +37,7 @@
 
 </head>
 
-<body class="layout-fixed sidebar-expand-lg sidebar-open bg-body-tertiary">
+<body class="layout-fixed sidebar-expand-lg sidebar-open bg-body-tertiary no-print">
 
     <div class="app-wrapper">
         <nav class="app-header navbar navbar-expand bg-body">
@@ -133,56 +134,94 @@
 
     <script src="{{ asset('assets/js/adminlte.js') }}"></script>
 
+
+
+    
     <!-- task & annuoncement js -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            /* ================= TOGGLE FIELDS ================= */
-            function toggleFields() {
-                let audience = $('#audience-select').val() || [];
-                $('.teacher-field').toggle(audience.includes("teacher"));
-                $('.student-field').toggle(audience.includes("student"));
-            }
-            toggleFields();
-            $('#audience-select').on('change', toggleFields);
-            /* ================= LOAD PROGRAMS ================= */
-            function loadPrograms(spId, selectedPrograms = []) {
-                $('#program-select').empty();
-                if (!spId) return;
-                $.get(`/ajax/get-programs/${spId}`, function(programs) {
-                    programs.forEach(p => {
-                        $('#program-select').append(
-                            `<option value="${p.id}" ${selectedPrograms.includes(p.id) ? 'selected' : ''}>
-                        ${p.name}
-                     </option>`
-                        );
-                    });
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    /* ================= TOGGLE FIELDS ================= */
+    function toggleFields() {
+        let audience = $('#audience-select').val() || [];
+        $('.teacher-field').toggle(audience.includes("teacher"));
+        $('.student-field').toggle(audience.includes("student"));
+    }
+    toggleFields();
+    $('#audience-select').on('change', toggleFields);
+
+    /* ================= LOAD PROGRAMS ================= */
+    function loadPrograms(spId, selectedPrograms = []) {
+        $('#program-select').empty().append('<option value="">-- Select Program --</option>');
+        $('#class-select').empty().append('<option value="">-- Select Class --</option>');
+        $('#student-checkbox-list').html('<small class="text-muted">Please select program first</small>');
+
+        if (!spId) return;
+
+        $.get(`/ajax/get-programs/${spId}`, function(programs) {
+            programs.forEach(p => {
+                let selected = selectedPrograms.includes(p.id) ? 'selected' : '';
+                $('#program-select').append(
+                    `<option value="${p.id}" ${selected}>${p.name}</option>`
+                );
+            });
+            $('#program-select').trigger('change'); // trigger to load classes if needed
+        });
+    }
+
+    /* ================= LOAD CLASSES BASED ON PROGRAMS ================= */
+    function loadClasses(programIds = [], selectedClasses = []) {
+        $('#class-select').empty().append('<option value="">-- Select Class --</option>');
+
+        if (programIds.length === 0) {
+            $('#student-checkbox-list').html('<small class="text-muted">Select program first</small>');
+            return;
+        }
+
+        $.ajax({
+            url: "{{ route('ajax.classes.filter') }}",
+            type: "POST",
+            data: {
+                _token: "{{ csrf_token() }}",
+                program_ids: programIds
+            },
+            success: function(classes) {
+                classes.forEach(c => {
+                    let selected = selectedClasses.includes(c.id) ? 'selected' : '';
+                    $('#class-select').append(
+                        `<option value="${c.id}" ${selected}>${c.class_name}</option>`
+                    );
                 });
             }
-            /* ================= LOAD STUDENTS (NO DUPLICATES) ================= */
-            function loadStudents(programIds = [], categoryIds = [], selectedStudents = []) {
-                $('#student-checkbox-list').html('');
-                $('#select-all-students').prop('checked', false);
-                if (programIds.length === 0) {
-                    $('#student-checkbox-list').html('<small class="text-muted">Select program first</small>');
+        });
+    }
+
+    /* ================= LOAD STUDENTS ================= */
+    function loadStudents(programIds = [], classIds = [], categoryIds = [], selectedStudents = []) {
+        $('#student-checkbox-list').html('');
+        $('#select-all-students').prop('checked', false);
+
+        if (programIds.length === 0 || classIds.length === 0) {
+            $('#student-checkbox-list').html('<small class="text-muted">Please select program and class</small>');
+            return;
+        }
+
+        $.ajax({
+            url: "{{ route('ajax.students.filter') }}",
+            type: "POST",
+            data: {
+                _token: "{{ csrf_token() }}",
+                program_ids: programIds,
+                class_ids: classIds,
+                category_ids: categoryIds
+            },
+            success: function(students) {
+                if (!students.length) {
+                    $('#student-checkbox-list').html('<small class="text-muted">No students found</small>');
                     return;
                 }
-                $.ajax({
-                    url: "{{ route('ajax.students.filter') }}",
-                    type: "POST",
-                    data: {
-                        _token: "{{ csrf_token() }}",
-                        program_ids: programIds,
-                        category_ids: categoryIds
-                    },
-                    success: function(students) {
-                        if (!students.length) {
-                            $('#student-checkbox-list').html(
-                                '<small class="text-muted">No students found</small>');
-                            return;
-                        }
-                        students.forEach(s => {
-                            let checked = selectedStudents.includes(s.id) ? 'checked' : '';
-                            $('#student-checkbox-list').append(`
+                students.forEach(s => {
+                    let checked = selectedStudents.includes(s.id) ? 'checked' : '';
+                    $('#student-checkbox-list').append(`
                         <div class="form-check">
                             <input class="form-check-input student-checkbox"
                                    type="checkbox"
@@ -194,40 +233,55 @@
                             </label>
                         </div>
                     `);
-                        });
-                    }
                 });
             }
-            /* ================= EVENTS ================= */
-            $('select[name="session_program_id"]').on('change', function() {
-                loadPrograms(this.value);
-                $('#student-checkbox-list').html(
-                    '<small class="text-muted">Please select program</small>');
-            });
-            $('#program-select, #stu-category-select').on('change', function() {
-                loadStudents(
-                    $('#program-select').val() || [],
-                    $('#stu-category-select').val() || []
-                );
-            });
-            $(document).on('change', '#select-all-students', function() {
-                $('.student-checkbox').prop('checked', this.checked);
-            });
-            /* ================= EDIT MODE ================= */
-            if (window.editTask) {
-                loadPrograms(
-                    editTask.sessionProgramId,
-                    editTask.programIds,
-                    editTask.studentIds
-                );
-                loadStudents(
-                    editTask.programIds,
-                    editTask.categoryIds,
-                    editTask.studentIds
-                );
-            }
         });
-    </script>
+    }
+
+    /* ================= EVENT LISTENERS ================= */
+    $('select[name="session_program_id"]').on('change', function() {
+        loadPrograms(this.value);
+    });
+
+    $('#program-select').on('change', function() {
+        let programIds = $(this).val() || [];
+        loadClasses(programIds);
+        loadStudents(programIds, $('#class-select').val() || [], $('#stu-category-select').val() || []);
+    });
+
+    $('#class-select, #stu-category-select').on('change', function() {
+        let programIds = $('#program-select').val() || [];
+        let classIds = $('#class-select').val() || [];
+        let categoryIds = $('#stu-category-select').val() || [];
+        loadStudents(programIds, classIds, categoryIds);
+    });
+
+    $(document).on('change', '#select-all-students', function() {
+        $('.student-checkbox').prop('checked', this.checked);
+    });
+
+    /* ================= EDIT MODE INITIALIZATION ================= */
+    if (window.editTask) {
+        loadPrograms(window.editTask.sessionProgramId, window.editTask.programIds);
+
+        // After programs load, load classes and students
+        setTimeout(() => {
+            loadClasses(window.editTask.programIds, window.editTask.classIds);
+
+            setTimeout(() => {
+                loadStudents(
+                    window.editTask.programIds,
+                    window.editTask.classIds,
+                    window.editTask.categoryIds,
+                    window.editTask.studentIds
+                );
+            }, 500);
+        }, 500);
+    }
+});
+</script>
+
+
 
     <!-- muliple option -->
     <script>
@@ -254,7 +308,7 @@
                 let id = this.getAttribute('data-id');
                 Swal.fire({
                     title: 'Are you sure?',
-                    text: "This session will be deleted permanently!",
+                    text: "This Row will be deleted permanently!",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
@@ -268,6 +322,9 @@
             });
         });
     </script>
+
+
+
 
 
 

@@ -37,6 +37,7 @@
                         <tr>
                             <th width="60" class="text-center">#</th>
                             <th>Audience</th>
+                            <th>Task Name</th>
                             <th>Task Start</th>
                             <th>Paper Date</th>
                             @canany(['task.update','task.delete', 'task.index'])
@@ -64,6 +65,11 @@
                                 @else
                                     -
                                 @endif
+                            </td>
+
+                             {{-- Task Name --}}
+                            <td>
+                                {{ $task->title ? : '-' }}
                             </td>
 
                             {{-- Task Start --}}

@@ -29,5 +29,7 @@ class ClassSubject extends Model
     {
         return $this->belongsTo(SessionProgram::class);
     }
+
+
 }
 

@@ -17,6 +17,12 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\MCQPaperController;
+use App\Http\Controllers\MCQQuestionController;
+use App\Http\Controllers\TestCatController;
+use App\Http\Controllers\McqCategoryController;
+use App\Http\Controllers\McqBankController;
+use App\Http\Controllers\PaperAssignController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -337,6 +343,11 @@ Route::get('get-programs/{sessionProgram}', [ClassSubjectController::class, 'get
     // task cat
     Route::resource('task-cat', TaskCatController::class);
 
+    // test cat
+    // Test Category
+Route::resource('test-cat', TestCatController::class);
+
+
     // task
     Route::resource('tasks', TaskController::class);
     Route::get('tasks/{task}/view', [TaskController::class,'view'])
@@ -351,13 +362,131 @@ Route::post('tasks/{task}/response', [TaskController::class,'storeResponse'])
     Route::resource('announcements', AnnouncementController::class);
 
 
+    // MCQ Papers (CRUD)
+    Route::prefix('mcqs/banks/{bank}')->group(function () {
+
+    Route::get('questions', [McqQuestionController::class,'index'])
+        ->name('mcq.banks.questions.index');
+
+    Route::get('questions/create', [McqQuestionController::class,'create'])
+        ->name('mcq.banks.questions.create');
+
+    Route::post('questions', [McqQuestionController::class,'store'])
+        ->name('mcq.banks.questions.store');
+
+    Route::get('questions/{question}/edit', [McqQuestionController::class,'edit'])
+        ->name('mcq.banks.questions.edit');
+
+    Route::put('questions/{question}', [McqQuestionController::class,'update'])
+        ->name('mcq.banks.questions.update');
+
+    Route::delete('questions/{question}', [McqQuestionController::class,'destroy'])
+        ->name('mcq.banks.questions.destroy');
+});
+
+  
+// AJAX – task students
+Route::get('/api/task/{task}/students', function (\App\Models\Task $task) {
+    return $task->students()->select('id','name','rollnum')->get();
+});
+
+Route::get('/mcq/assign/{paper}/view', [PaperAssignController::class,'view'])
+    ->name('mcq.assign.view');
+
+
+
+
+
+
+
+    Route::post('mcq/paper/{paper}/submit', [McqPaperController::class, 'submit'])
+     ->name('mcq.paper.submit');
+
+Route::post('mcq/paper/{paper}/submit-subjective', [McqPaperController::class, 'submitSubjective'])
+     ->name('mcq.paper.submit_subjective');
+
+Route::post('mcq/assign/{paper}/grade-subjective', [PaperAssignController::class, 'gradeSubjective'])
+     ->name('mcq.assign.grade-subjective');
+
+
+     Route::post('/ajax/classes/filter', [TaskController::class, 'filterClasses'])->name('ajax.classes.filter');
+
+     
+
+
 
 });
 
+Route::prefix('mcqs')
+    ->middleware('auth')
+    ->name('mcq.')
+    ->group(function () {
+
+    Route::resource('categories', McqCategoryController::class);
+    Route::resource('banks', McqBankController::class);
+
+    // Questions inside Bank
+    Route::get('banks/{bank}/questions',
+        [McqQuestionController::class,'index'])
+        ->name('banks.questions.index');
+
+    Route::get('banks/{bank}/questions/create',
+        [McqQuestionController::class,'create'])
+        ->name('banks.questions.create');
+
+    Route::post('banks/{bank}/questions',
+        [McqQuestionController::class,'store'])
+        ->name('banks.questions.store');
+});
+
+
+
+
+// ===============================
+// MCQ ASSIGN ROUTES (ALL PROTECTED BY AUTH)
+// ===============================
+Route::prefix('mcq/assign')
+    ->middleware('auth')
+    ->name('mcq.assign.')
+    ->group(function () {
+
+    Route::get('/', [PaperAssignController::class, 'index'])->name('index');
+
+    Route::get('/create', [PaperAssignController::class, 'create'])->name('create');
+    Route::post('/', [PaperAssignController::class, 'store'])->name('store'); // POST to /mcq/assign
+
+    Route::get('/{paper}/edit', [PaperAssignController::class, 'edit'])->name('edit');
+    Route::put('/{paper}', [PaperAssignController::class, 'update'])->name('update');
+    Route::delete('/{paper}', [PaperAssignController::class, 'destroy'])->name('destroy');
+
+    // VIEW ROUTE – This must be BEFORE the {paper} wildcard routes!
+    Route::get('/{paper}/view', [PaperAssignController::class, 'view'])->name('view');
+
+    // AJAX: Get questions from multiple banks
+    Route::post('/banks/questions', [PaperAssignController::class, 'getQuestionsFromBanks'])
+        ->name('banks.questions');
+
+    // Optional: Single bank
+    Route::get('/bank/{bank}/questions', [PaperAssignController::class, 'bankQuestions']);
+
+    // Check Result Page
+    Route::get('/check-result', [PaperAssignController::class, 'checkResult'])
+        ->name('check-result');
+
+    // AJAX: Get students for selected paper
+    Route::get('/get-students', [PaperAssignController::class, 'getStudentsForPaper'])
+        ->name('get-students');
+
+
+     
+});
+
+
+
 /*
  * ------------------------------------------------------------
- *  Routes half ki permisison routes main haia ur half ki
- *  controller ki file main ok.
+ *  modules zayada ki permisison controller main hai aur half ki
+ *  routes ki file main ok.
  *  Author:  Zain Mughal
  *  Phone: +92 3258606798
  * ------------------------------------------------------------

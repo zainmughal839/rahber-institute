@@ -10,6 +10,8 @@ use App\Models\TaskUserResponse;
 use App\Models\StuCategory;
 use App\Models\SessionProgram;
 use App\Models\Student;
+use App\Models\ClassSubject;
+use App\Models\TestCat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -70,6 +72,8 @@ class TaskController extends Controller
             'categories' => TaskCat::orderBy('name')->get(),
             'sessionPrograms' => SessionProgram::with(['session','programs'])->get(),
             'studentCategories' => StuCategory::orderBy('name')->get(),
+            'testCategories' => TestCat::orderBy('name')->get(),
+            'classes' => ClassSubject::orderBy('class_name')->get(),
         ]);
     }
 
@@ -89,13 +93,29 @@ class TaskController extends Controller
             'teacher_desc'        => 'nullable|string',
             'student_heading'     => 'nullable|string',
             'student_desc'        => 'nullable|string',
+
+            'test_category_id' => 'nullable|exists:test_cat,id',
+            'test_type'        => 'nullable|in:oral,written',
+            'test_title'       => 'nullable|string|max:255',
+            'test_desc'        => 'nullable|string',
+            'test_orientation' => 'nullable|string',
+            'result_announce_at' => 'nullable|date',
+            'paper_submit_at' => 'nullable|date',
+            'total_marks'     => 'nullable|integer',
+            'passing_marks'   => 'nullable|integer',
+
         ]);
 
         DB::transaction(function () use ($request, $data) {
 
             $data['is_completed'] = $request->boolean('is_completed');
 
+            // ✅ THIS LINE WAS MISSING
+            $data['has_test'] = $request->boolean('has_test');
+
             $task = Task::create($data);
+            $task->classes()->sync($request->class_ids ?? []);
+
 
             /* PROGRAMS */
             if ($request->filled('program_ids')) {
@@ -118,12 +138,14 @@ class TaskController extends Controller
     }
 
     /* ================= EDIT ================= */
+
     public function edit(Task $task)
     {
         $task->load([
             'programs',
             'students',
             'studentCategories',
+            'classes', // add this
             'sessionProgram.session',
             'sessionProgram.programs'
         ]);
@@ -134,6 +156,8 @@ class TaskController extends Controller
             'categories' => TaskCat::orderBy('name')->get(),
             'sessionPrograms' => SessionProgram::with(['session','programs'])->get(),
             'studentCategories' => StuCategory::orderBy('name')->get(),
+            'testCategories' => TestCat::orderBy('name')->get(),
+            'classes' => ClassSubject::orderBy('class_name')->get(),
         ]);
     }
 
@@ -153,12 +177,29 @@ class TaskController extends Controller
             'teacher_desc'        => 'nullable|string',
             'student_heading'     => 'nullable|string',
             'student_desc'        => 'nullable|string',
+
+            'test_category_id' => 'nullable|exists:test_cat,id',
+            'test_type'        => 'nullable|in:oral,written',
+            'test_title'       => 'nullable|string|max:255',
+            'test_desc'        => 'nullable|string',
+            'test_orientation' => 'nullable|string',
+            'result_announce_at' => 'nullable|date',
+            'paper_submit_at' => 'nullable|date',
+            'total_marks'     => 'nullable|integer',
+            'passing_marks'   => 'nullable|integer',
+
         ]);
 
         DB::transaction(function () use ($request, $task, $data) {
+            
 
-            $data['is_completed'] = $request->boolean('is_completed');
+            $data['has_test'] = $request->boolean('has_test');
             $task->update($data);
+
+            
+            /* SUBJECTS */
+            $task->subjects()->sync($request->subject_ids ?? []);
+
 
             $task->programs()->sync($request->program_ids ?? []);
 
@@ -166,11 +207,27 @@ class TaskController extends Controller
             $task->studentCategories()->sync($request->stu_category_ids ?? []);
 
             $task->students()->sync($request->student_ids ?? []);
+
+            $task->classes()->sync($request->class_ids ?? []);
         });
 
         return redirect()->route('tasks.index')
             ->with('success','Task Updated Successfully');
     }
+
+
+    public function filterClasses(Request $request)
+{
+    return ClassSubject::query()
+        ->when($request->program_ids, function ($q) use ($request) {
+            $q->whereHas('sessionProgram.programs', function ($sq) use ($request) {
+                $sq->whereIn('programs.id', $request->program_ids);
+            });
+        })
+        ->select('id', 'class_name')
+        ->orderBy('class_name')
+        ->get();
+}
 
 
 public function view(Task $task)

@@ -31,16 +31,17 @@
                 @csrf
                 @if(isset($task)) @method('PUT') @endif
 
-                   @if(isset($task))
-                        <script>
+                @if(isset($task))
+                    <script>
                         window.editTask = {
                             programIds: @json($task->programs->pluck('id')),
                             studentIds: @json($task->students->pluck('id')),
                             categoryIds: @json($task->studentCategories->pluck('id')),
+                            classIds: @json($task->classes->pluck('id')),
                             sessionProgramId: {{ $task->session_program_id }}
                         };
-                        </script>
-                    @endif
+                    </script>
+                @endif
 
                 <div class="row g-3">
 
@@ -86,8 +87,8 @@
                         </select>
                     </div>
 
-                    <div class="col-md-6 teacher-field">
-                        <label class="form-label fw-semibold">Task Title</label>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Task Name</label>
                         <input type="text" name="title" class="form-control"
                             value="{{ old('title', $task->title ?? '') }}">
                     </div>
@@ -125,7 +126,8 @@
                     <!-- Student Fields -->
                     <div class="col-md-6 student-field">
                         <label class="form-label fw-semibold">Student Category</label>
-                        <select name="stu_category_ids[]" id="stu-category-select" class="my-select"  style="width: 100%;" multiple>
+                        <select name="stu_category_ids[]" id="stu-category-select" class="my-select"
+                            style="width: 100%;" multiple>
                             @foreach($studentCategories as $sc)
                             <option value="{{ $sc->id }}" @if(isset($task) && $task->
                                 studentCategories->pluck('id')->contains($sc->id))
@@ -155,9 +157,17 @@
 
                     <div class="col-md-6 student-field">
                         <label class="form-label fw-semibold">Program</label>
-                        <select name="program_ids[]" id="program-select" class="my-select" style="width: 100%;" multiple>
+                        <select name="program_ids[]" id="program-select" class="my-select" style="width: 100%;"
+                            multiple>
 
                             <option value="">-- Select Program --</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 student-field">
+                        <label class="form-label fw-semibold">Class</label>
+                        <select name="class_ids[]" id="class-select" class="my-select" style="width: 100%;" multiple>
+                            <option value="">-- Select Class --</option>
                         </select>
                     </div>
 
@@ -198,12 +208,89 @@
                             class="form-control">{{ old('student_desc', $task->student_desc ?? '') }}</textarea>
                     </div>
 
-                    <!-- Completed -->
                     <div class="col-12">
                         <div class="form-check">
-                            <input type="checkbox" name="is_completed" class="form-check-input" id="is_completed"
-                                {{ old('is_completed', $task->is_completed ?? false) ? 'checked' : '' }}>
-                            <label class="form-check-label" for="is_completed">Mark as Completed</label>
+                            <input type="checkbox" id="has_test" name="has_test" class="form-check-input"
+                                {{ old('has_test', $task->has_test ?? false) ? 'checked' : '' }}>
+                            <label class="form-check-label fw-bold">Has Test Details</label>
+                        </div>
+                    </div>
+
+                    <div class="test-fields mt-3 {{ old('has_test', $task->has_test ?? false) ? '' : 'd-none' }}">
+
+                        <div class="row g-3">
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Test Category</label>
+                                <select name="test_category_id" class="form-select">
+                                    <option value="">-- Select --</option>
+                                    @foreach($testCategories as $tc)
+                                    <option value="{{ $tc->id }}"
+                                        {{ old('test_category_id', $task->test_category_id ?? '') == $tc->id ? 'selected':'' }}>
+                                        {{ $tc->name }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Test Type</label><br>
+                                <div class="form-check form-check-inline">
+                                    <input type="radio" name="test_type" value="oral"
+                                        {{ old('test_type', $task->test_type ?? '') == 'oral' ? 'checked' : '' }}>
+
+                                    <label class="form-check-label">Oral</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input type="radio" name="test_type" value="written"
+                                        {{ old('test_type', $task->test_type ?? '') == 'written' ? 'checked' : '' }}>
+
+                                    <label class="form-check-label">Written</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Test Title</label>
+                                <input type="text" name="test_title" class="form-control"
+                                    value="{{ old('test_title', $task->test_title ?? '') }}">
+
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Test Description</label>
+                                <textarea name="test_desc"
+                                    class="form-control">{{ old('test_desc', $task->test_desc ?? '') }}</textarea>
+
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Result Announce</label>
+                                <input type="datetime-local" name="result_announce_at" class="form-control"
+                                    value="{{ old('result_announce_at', isset($task) && $task->result_announce_at ? $task->result_announce_at->format('Y-m-d\TH:i') : '') }}">
+
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Paper Submit</label>
+                                <input type="datetime-local" name="paper_submit_at" class="form-control"
+                                    value="{{ old('paper_submit_at', isset($task) && $task->paper_submit_at ? $task->paper_submit_at->format('Y-m-d\TH:i') : '') }}">
+
+                            </div>
+
+                            <div class="col-md-6">
+                                <label>Total Marks</label>
+                                <input type="number" name="total_marks" class="form-control"
+                                    value="{{ old('total_marks', $task->total_marks ?? '') }}">
+
+                            </div>
+
+                            <div class="col-md-6">
+                                <label>Passing Marks</label>
+                                <input type="number" name="passing_marks" class="form-control"
+                                    value="{{ old('passing_marks', $task->passing_marks ?? '') }}">
+
+                            </div>
+
                         </div>
                     </div>
 
@@ -224,5 +311,18 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const hasTest = document.getElementById('has_test');
+        const testFields = document.querySelector('.test-fields');
+
+        function toggleTestFields() {
+            testFields.classList.toggle('d-none', !hasTest.checked);
+        }
+        toggleTestFields(); // 🔥 page load (edit fix)
+        hasTest.addEventListener('change', toggleTestFields);
+    });
+</script>
 
 @endsection

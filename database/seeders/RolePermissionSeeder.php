@@ -79,6 +79,12 @@ class RolePermissionSeeder extends Seeder
             'task-cat.update',
             'task-cat.delete',
 
+             // test-cat Assignments
+            'test-cat.index',
+            'test-cat.create',
+            'test-cat.update',
+            'test-cat.delete',
+
 
             // task Assignments
             'task.index',
@@ -86,11 +92,38 @@ class RolePermissionSeeder extends Seeder
             'task.update',
             'task.delete',
 
-            // task Assignments
+            // Announcemnt
             'announcement.index',
             'announcement.create',
             'announcement.update',
             'announcement.delete',
+
+            
+            // mcq-cat
+            'mcq-category.index',
+            'mcq-category.create',
+            'mcq-category.update',
+            'mcq-category.delete',
+
+            // mcq-bank
+            'mcq.banks.index',
+            'mcq.banks.create',
+            'mcq.banks.update',
+            'mcq.banks.delete',
+
+
+             // assign-paper
+            'assign-paper.index',
+            'assign-paper.create',
+            'assign-paper.update',
+            'assign-paper.delete',
+            'assign-paper.check-result',
+            'assign-paper.notuse',
+            'assign-paper.nouse',
+            'assign-paper.noouse',
+
+
+            
 
             // ROLES
             'role.index',

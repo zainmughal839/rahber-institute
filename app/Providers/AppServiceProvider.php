@@ -16,7 +16,14 @@ use App\Repositories\Interfaces\RoleRepositoryInterface;
 use App\Repositories\Interfaces\SessionRepositoryInterface;
 use App\Repositories\Interfaces\StudentRepositoryInterface;
 use App\Repositories\Interfaces\UserRepositoryInterface;
+use App\Repositories\Interfaces\TestCatRepositoryInterface;
+use App\Repositories\Eloquent\TestCatRepository;
+use App\Repositories\Interfaces\McqCategoryRepositoryInterface;
+use App\Repositories\Eloquent\McqCategoryRepository;
+use App\Models\McqPaper;
+use App\Observers\McqPaperObserver;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+
 use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
@@ -101,6 +108,20 @@ class AppServiceProvider extends ServiceProvider
         \App\Repositories\Interfaces\TaskRepositoryInterface::class,
         \App\Repositories\Eloquent\TaskRepository::class
     );
+
+    // test category
+    $this->app->bind(TestCatRepositoryInterface::class, TestCatRepository::class);
+
+     $this->app->bind(
+        \App\Repositories\Interfaces\McqPaperRepositoryInterface::class,
+        \App\Repositories\Eloquent\McqPaperRepository::class
+    );
+
+     $this->app->bind(
+        McqCategoryRepositoryInterface::class,
+        McqCategoryRepository::class
+    );
+
     }
 
     /**
@@ -110,6 +131,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot()
     {
+
+        
         $this->registerPolicies();
 
         // Ye magic line — Student/Teacher ke liye Spatie permissions disable
