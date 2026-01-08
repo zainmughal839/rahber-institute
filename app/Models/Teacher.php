@@ -19,6 +19,7 @@ class Teacher extends Model
         'cnic_front_image',
         'cnic_back_image',
         'academic_details',
+        'salary',
     ];
 
     protected $casts = [

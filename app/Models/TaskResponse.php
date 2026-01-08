@@ -13,7 +13,8 @@ class TaskResponse extends Model
         'task_id',
         'teacher_id',
         'response_type',
-        'desc'
+        'desc',
+        'd_married_points',
     ];
 
     public function task()

@@ -23,20 +23,27 @@ class SessionProgram extends Model
     }
 
 
+    public function programs()
+{
+    return $this->belongsToMany(Program::class, 'session_program_program', 'session_program_id', 'program_id');
+}
+
     public function students()
     {
         return $this->hasMany(Student::class, 'session_program_id');
     }
 
-   public function programs()
+
+public function sessionPrograms()
 {
     return $this->belongsToMany(
-        Program::class,
+        SessionProgram::class,
         'session_program_program',
-        'session_program_id',
-        'program_id'
-    )->withPivot(['seats', 'fees']);
+        'program_id',
+        'session_program_id'
+    );
 }
+
 
 
 

@@ -12,33 +12,38 @@ class Program extends Model
     protected $table = 'programs';
 
     protected $fillable = [
-        'name',
-        'shortname',
-        'program_code',
-        'description',
+        'name', 'shortname', 'program_code', 'description', 'divided_fees',
     ];
 
-  public function subjects()
-{
-    return $this->belongsToMany(Subject::class, 'program_subject');
-}
+    
+    public function subjects()
+    {
+        return $this->belongsToMany(Subject::class, 'program_subject');
+    }
 
-public function parts()
-{
-    return $this->hasMany(ProgramPart::class);
-}
+    public function parts()
+    {
+        return $this->hasMany(ProgramPart::class);
+    }
 
-public function tasks()
-{
-    return $this->belongsToMany(Task::class, 'program_task');
-}
+    public function tasks()
+    {
+        return $this->belongsToMany(Task::class, 'program_task');
+    }
 
-public function classSubjects()
-{
-    return $this->belongsToMany(ClassSubject::class, 'class_subject_program');
-}
+    public function classSubjects()
+    {
+        return $this->belongsToMany(ClassSubject::class, 'class_subject_program');
+    }
 
-
-
-
+    
+    public function sessionPrograms()
+    {
+        return $this->belongsToMany(
+            SessionProgram::class,
+            'session_program_program', // pivot table
+            'program_id',
+            'session_program_id'
+        );
+    }
 }

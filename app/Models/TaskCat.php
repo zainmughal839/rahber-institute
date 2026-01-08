@@ -9,6 +9,6 @@ class TaskCat extends Model
     protected $table = 'task_cat';
 
     protected $fillable = [
-        'name', 'desc'
+        'name', 'desc', 'd_married_points'
     ];
 }

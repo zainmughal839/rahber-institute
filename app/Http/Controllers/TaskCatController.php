@@ -36,10 +36,14 @@ class TaskCatController extends Controller
     {
         $req->validate([
             'name' => 'required|string|max:255',
-            'desc' => 'nullable|string'
+            'desc' => 'nullable|string',
+            'd_married_points' => 'required|integer|min:0'
         ]);
 
-        $this->repo->store($req->only('name','desc'));
+        $this->repo->store(
+            $req->only('name', 'desc', 'd_married_points')
+        );
+
 
         return redirect()->route('task-cat.create')->with('success', 'Category Created Successfully');
     }
@@ -54,10 +58,15 @@ class TaskCatController extends Controller
     {
         $req->validate([
             'name' => 'required|string|max:255',
-            'desc' => 'nullable|string'
+            'desc' => 'nullable|string',
+            'd_married_points' => 'required|integer|min:0'
         ]);
 
-        $this->repo->update($id, $req->only('name','desc'));
+        $this->repo->update(
+            $id,
+            $req->only('name', 'desc', 'd_married_points')
+        );
+
 
         return redirect()->route('task-cat.index')->with('success', 'Category Updated Successfully');
     }

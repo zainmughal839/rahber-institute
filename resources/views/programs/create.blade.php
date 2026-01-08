@@ -81,6 +81,20 @@
                                     class="form-control">{{ old('description', $program->description ?? '') }}</textarea>
                             </div>
 
+                            <!-- Divided Fees -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">
+                                    Number of Divided Fees
+                                </label>
+                                <input type="number"
+                                    name="divided_fees"
+                                    min="1"
+                                    class="form-control"
+                                    value="{{ old('divided_fees', $program->divided_fees ?? '') }}"
+                                    placeholder="e.g. 2, 4, 6">
+                            </div>
+
+
                         </div>
                     </div>
 

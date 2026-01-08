@@ -14,6 +14,16 @@
     <title>Rahber Dashboard</title>
 
     <!--  Bootstrap + Icons -->
+      @php
+        $settings = \App\Models\Setting::first();
+        $faviconPath = $settings && $settings->favicon 
+            ? asset('storage/' . $settings->favicon) 
+            : asset('assets/img/favicon.ico'); // fallback favicon
+    @endphp
+
+    <link rel="icon" href="{{ $faviconPath }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ $faviconPath }}" type="image/x-icon">
+
     <link rel="stylesheet" href="{{ asset('assets/css/adminlte.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/source-sans-3@5.0.12/index.css"
         crossorigin="anonymous" media="print" onload="this.media='all'" />

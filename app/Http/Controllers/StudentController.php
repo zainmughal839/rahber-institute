@@ -83,9 +83,15 @@ class StudentController extends Controller
             'description' => 'nullable|string',
             'stu_category_id' => 'nullable|exists:stu_category,id',
             'stu_category_id' => 'nullable|exists:stu_category,id',
-'class_subject_id' => 'nullable|exists:class_subjects,id',
+            'class_subject_id' => 'nullable|exists:class_subjects,id',
+            'student_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
 
         ]);
+
+        // Handle image upload
+        if ($request->hasFile('student_image')) {
+            $validated['student_image'] = $request->file('student_image')->store('students', 'public');
+        }
 
         $student = $this->students->create($validated);
 
@@ -252,10 +258,21 @@ public function assignSessionProgram(Request $request, $id)
             'description' => 'nullable|string',
             'stu_category_id' => 'nullable|exists:stu_category,id',
             'stu_category_id' => 'nullable|exists:stu_category,id',
-'class_subject_id' => 'nullable|exists:class_subjects,id',
+            'class_subject_id' => 'nullable|exists:class_subjects,id',
+            'student_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
 
         ]);
 
+        $student = $this->students->find($id);
+            // Handle image upload (only if new file uploaded)
+        if ($request->hasFile('student_image')) {
+            // Optional: delete old image
+            if ($student->student_image) {
+                \Storage::disk('public')->delete('students/' . $student->student_image);
+            }
+            $validated['student_image'] = $request->file('student_image')->store('students', 'public');
+        }
+        
         $this->students->update($id, $validated);
 
         return redirect()

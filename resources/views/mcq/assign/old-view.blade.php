@@ -454,20 +454,35 @@ if ($mode === 'student' && $attempt) {
         </div>
 
         
+
+
+        @if($mode === 'student')
+            <div class="alert alert-info text-center fw-semibold mt-3 no-print">
+                 <strong>Notice:</strong>
+                After completing the MCQs, please refresh this page at
+                <span class="text-primary">
+                    {{ now()->addSeconds($remainingMcqSeconds)->format('h:i A') }}
+                </span>
+                to proceed to the <strong>Subjective section</strong>.
+            </div>
+        @endif
+
+
         <!-- Subjective Section -->
+        
         @if($paper->subjectiveQuestions->count() > 0)
             <hr class="my-4 border-top border-secondary">
-            <h4 class="mt-3 text-primary fw-bold mb-3">Subjective Questions</h4>
+            <h5 class="mt-3 text-primary fw-bold mb-3">Subjective Questions</h5>
 
             <!-- Student Upload -->
             @if($mode === 'student' && $attempt && !$attempt->subjective_submitted && $allowSubjective)
 
                 <div id="subjectiveTimerSection" class="no-print"
-                    style="background:#ffc107; color:#212529; padding:14px; text-align:center;
+                    style="background:#3677e0; color:#ffff; padding:14px; text-align:center;
                             border-radius:8px; font-size:18px; font-weight:700; margin-bottom:20px;">
                     Subjective Time Remaining:
                     <span id="subjectiveTimer">{{ gmdate('H:i:s', $remainingSubjectiveSeconds) }}</span>
-                    <p class="mb-0 text-danger fw-bold">Subjective Complete Auto Submit Paper</p>
+                    <p class="mb-0 text-black fw-bold">Subjective Complete Auto Submit Paper</p>
                 </div>
                 <!-- Same as before – no change needed -->
                 <form method="POST"
@@ -675,12 +690,16 @@ if ($mode === 'student' && $attempt) {
 
 
 
+
+<!-- Include SweetAlert2 CDN (put in your <head> or before scripts) -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 @if($mode === 'student' && !$attempt && $allowMcq)
 <script>
     const totalQuestions = {{ $mcq_total }};
     const timePerQuestion = {{ $timePerQuestionSeconds }};
     let currentQuestionIndex = 0;
-    let remainingTotalTime = {{ $remainingMcqSeconds }};  // ← USE REMAINING TIME FROM CONTROLLER
+    let remainingTotalTime = {{ $remainingMcqSeconds }};
     let questionTimeout;
     let mainTimerInterval;
 
@@ -699,7 +718,17 @@ if ($mode === 'student' && $attempt) {
     function goToNextQuestion() {
         currentQuestionIndex++;
         if (currentQuestionIndex >= totalQuestions) {
-            document.getElementById('mcqForm').submit();
+            Swal.fire({
+                title: 'Time is up!',
+                text: 'Submitting your MCQ paper...',
+                icon: 'info',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                timer: 2000,
+                didClose: () => {
+                    document.getElementById('mcqForm').submit();
+                }
+            });
         } else {
             showQuestion(currentQuestionIndex);
         }
@@ -717,8 +746,17 @@ if ($mode === 'student' && $attempt) {
             if (remainingTotalTime <= 0) {
                 clearInterval(mainTimerInterval);
                 clearTimeout(questionTimeout);
-                alert('MCQ Time is over! Submitting your paper...');
-                document.getElementById('mcqForm').submit();
+                Swal.fire({
+                    title: 'MCQ Time is over!',
+                    text: 'Submitting your paper...',
+                    icon: 'warning',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    timer: 2000,
+                    didClose: () => {
+                        document.getElementById('mcqForm').submit();
+                    }
+                });
                 return;
             }
             remainingTotalTime--;
@@ -742,8 +780,17 @@ if ($mode === 'student' && $attempt) {
     const subjectiveTimerInterval = setInterval(() => {
         if (subjectiveTimeLeft <= 0) {
             clearInterval(subjectiveTimerInterval);
-            alert('Subjective time ended! Paper is being submitted...');
-            document.getElementById('subjectiveForm').submit();
+            Swal.fire({
+                title: 'Subjective Time Ended!',
+                text: 'Your paper is being submitted...',
+                icon: 'warning',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                timer: 2000,
+                didClose: () => {
+                    document.getElementById('subjectiveForm').submit();
+                }
+            });
             return;
         }
 
@@ -760,6 +807,7 @@ if ($mode === 'student' && $attempt) {
     }, 1000);
 </script>
 @endif
+
 
 
 

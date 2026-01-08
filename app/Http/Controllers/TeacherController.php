@@ -47,74 +47,60 @@ class TeacherController extends Controller
         return view('teachers.create');
     }
 
-    public function store(Request $request)
-    {
-        if (session('is_panel_user')) {
-            abort(403);
-        }
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'cnic' => 'required|string|max:20|unique:teachers,cnic',
-            'phone' => 'nullable|string',
-            'email' => 'nullable|email|max:255|unique:teachers,email',
-            'description' => 'nullable|string|max:280',
-            'address' => 'nullable|string|max:500',
-            'salary' => 'required|numeric|min:0',
-            'picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'cnic_front_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'cnic_back_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'academic.*.degree' => 'required|string|max:255',
-            'academic.*.institute' => 'required|string|max:255',
-            'academic.*.passing_year' => 'required|numeric',
-            'academic_images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    public function store(Request $request)
+{
+    if (session('is_panel_user')) {
+        abort(403);
+    }
+
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'cnic' => 'required|string|max:20|unique:teachers,cnic',
+        'phone' => 'nullable|string',
+        'email' => 'nullable|email|max:255|unique:teachers,email',
+        'description' => 'nullable|string|max:280',
+        'address' => 'nullable|string|max:500',
+        'salary' => 'required|numeric|min:0',
+        'picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        'cnic_front_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        'cnic_back_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    ]);
+
+    try {
+        $input = $request->only([
+            'name', 'cnic', 'phone', 'email',
+            'description', 'address'
         ]);
 
-        try {
-            $input = $request->only(['name', 'cnic', 'phone', 'email', 'description', 'address']);
-            $input['salary'] = $request->salary;
+        // ✅ Salary only in teachers table
+        $input['salary'] = $request->salary;
 
-            // Handle file uploads
-            if ($request->hasFile('picture')) {
-                $input['picture'] = $request->file('picture')->store('teachers/pictures', 'public');
-            }
-            if ($request->hasFile('cnic_front_image')) {
-                $input['cnic_front_image'] = $request->file('cnic_front_image')->store('teachers/cnic', 'public');
-            }
-            if ($request->hasFile('cnic_back_image')) {
-                $input['cnic_back_image'] = $request->file('cnic_back_image')->store('teachers/cnic', 'public');
-            }
-
-            $academic = $request->academic ?? [];
-            $academicImages = $request->file('academic_images') ?? [];
-
-            foreach ($academic as $i => &$row) {
-                if (isset($academicImages[$i])) {
-                    $row['image'] = $academicImages[$i]->store('teachers/degrees', 'public');
-                } else {
-                    $row['image'] = null;
-                }
-            }
-
-            $input['academic_details'] = $academic;
-
-            $teacher = $this->teachers->create($input);
-
-            // Ledger Entry
-            AllLedger::create([
-                'student_id' => null,
-                'teacher_id' => $teacher->id,
-                'amount' => $request->salary,
-                'type' => 'debit',
-                'ledger_category' => 'salary',
-                'description' => 'Monthly salary credited for teacher: '.$teacher->name,
-            ]);
-
-            return redirect()->route('teachers.index')->with('success', 'Teacher created successfully.');
-        } catch (QueryException $e) {
-            return back()->withInput()->withErrors(['db_error' => 'Database error: '.$e->getMessage()]);
+        if ($request->hasFile('picture')) {
+            $input['picture'] = $request->file('picture')->store('teachers/pictures', 'public');
         }
+        if ($request->hasFile('cnic_front_image')) {
+            $input['cnic_front_image'] = $request->file('cnic_front_image')->store('teachers/cnic', 'public');
+        }
+        if ($request->hasFile('cnic_back_image')) {
+            $input['cnic_back_image'] = $request->file('cnic_back_image')->store('teachers/cnic', 'public');
+        }
+
+        $input['academic_details'] = $request->academic ?? [];
+
+        $this->teachers->create($input);
+
+        return redirect()
+            ->route('teachers.index')
+            ->with('success', 'Teacher created successfully.');
+
+    } catch (QueryException $e) {
+        return back()->withInput()->withErrors([
+            'db_error' => 'Database error: '.$e->getMessage()
+        ]);
     }
+}
+
 
     public function show($id)
     {
@@ -137,99 +123,63 @@ class TeacherController extends Controller
         return view('teachers.view', compact('teacher'));
     }
 
-    public function edit($id)
-    {
-        if (session('is_panel_user')) {
-            abort(403);
-        }
-
-        $teacher = $this->teachers->find($id);
-        abort_if(!$teacher, 404);
-
-        $teacher->salary = AllLedger::where('teacher_id', $id)
-            ->where('ledger_category', 'salary')
-            ->latest()
-            ->value('amount') ?? 0;
-
-        return view('teachers.edit', compact('teacher'));
+public function edit($id)
+{
+    if (session('is_panel_user')) {
+        abort(403);
     }
 
-    public function update(Request $request, $id)
-    {
-        if (session('is_panel_user')) {
-            abort(403);
-        }
+    $teacher = $this->teachers->find($id);
+    abort_if(!$teacher, 404);
 
-        $teacher = $this->teachers->find($id);
-        abort_if(!$teacher, 404);
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'cnic' => 'required|string|max:20|unique:teachers,cnic,'.$id,
-            'email' => 'nullable|email|max:255|unique:teachers,email,'.$id,
-            'phone' => 'nullable|string',
-            'address' => 'nullable|string|max:500',
-            'description' => 'nullable|string|max:280',
-            'salary' => 'required|numeric|min:0',
-            'picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'cnic_front_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'cnic_back_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+
+    return view('teachers.edit', compact('teacher'));
+}
+
+
+    
+public function update(Request $request, $id)
+{
+    if (session('is_panel_user')) {
+        abort(403);
+    }
+
+    $teacher = $this->teachers->find($id);
+    abort_if(!$teacher, 404);
+
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'cnic' => 'required|string|max:20|unique:teachers,cnic,'.$id,
+        'email' => 'nullable|email|max:255|unique:teachers,email,'.$id,
+        'phone' => 'nullable|string',
+        'address' => 'nullable|string|max:500',
+        'description' => 'nullable|string|max:280',
+        'salary' => 'required|numeric|min:0',
+    ]);
+
+    try {
+        $input = $request->only([
+            'name', 'cnic', 'phone', 'email',
+            'description', 'address'
         ]);
 
-        try {
-            $input = $request->only(['name', 'cnic', 'phone', 'email', 'description', 'address']);
-            $input['salary'] = $request->salary;
+        // ✅ Salary update only here
+        $input['salary'] = $request->salary;
 
-            if ($request->hasFile('picture')) {
-                if ($teacher->picture) {
-                    Storage::disk('public')->delete($teacher->picture);
-                }
-                $input['picture'] = $request->file('picture')->store('teachers/pictures', 'public');
-            }
-            if ($request->hasFile('cnic_front_image')) {
-                if ($teacher->cnic_front_image) {
-                    Storage::disk('public')->delete($teacher->cnic_front_image);
-                }
-                $input['cnic_front_image'] = $request->file('cnic_front_image')->store('teachers/cnic', 'public');
-            }
-            if ($request->hasFile('cnic_back_image')) {
-                if ($teacher->cnic_back_image) {
-                    Storage::disk('public')->delete($teacher->cnic_back_image);
-                }
-                $input['cnic_back_image'] = $request->file('cnic_back_image')->store('teachers/cnic', 'public');
-            }
+        $this->teachers->update($id, $input);
 
-            // Academic details update (simplified)
-            if ($request->has('academic')) {
-                $academic = $request->academic ?? [];
-                $academicImages = $request->file('academic_images') ?? [];
+        return redirect()
+            ->route('teachers.index')
+            ->with('success', 'Teacher updated successfully.');
 
-                foreach ($academic as $i => &$row) {
-                    $oldImage = $row['old_image'] ?? null;
-                    if (isset($academicImages[$i])) {
-                        if ($oldImage) {
-                            Storage::disk('public')->delete($oldImage);
-                        }
-                        $row['image'] = $academicImages[$i]->store('teachers/degrees', 'public');
-                    } else {
-                        $row['image'] = $oldImage;
-                    }
-                }
-                $input['academic_details'] = $academic;
-            }
-
-            $this->teachers->update($id, $input);
-
-            // Update salary in ledger
-            AllLedger::where('teacher_id', $teacher->id)
-                ->where('ledger_category', 'salary')
-                ->update(['amount' => $request->salary]);
-
-            return redirect()->route('teachers.index')->with('success', 'Teacher updated successfully.');
-        } catch (QueryException $e) {
-            return back()->withErrors(['db_error' => $e->getMessage()]);
-        }
+    } catch (QueryException $e) {
+        return back()->withErrors([
+            'db_error' => $e->getMessage()
+        ]);
     }
+}
+
 
     public function destroy($id)
     {
@@ -277,10 +227,7 @@ class TeacherController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $teacher->salary = AllLedger::where('teacher_id', $teacher->id)
-            ->where('ledger_category', 'salary')
-            ->latest()
-            ->value('amount') ?? 0;
+      
 
         return view('teachers.teacher_ledger', compact('teacher', 'ledgers'));
     }

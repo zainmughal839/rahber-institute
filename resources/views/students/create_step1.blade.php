@@ -31,7 +31,7 @@
 
         {{-- FORM START --}}
         <form action="{{ isset($student) ? route('students.update', $student->id) : route('students.store') }}"
-            method="POST">
+            method="POST" enctype="multipart/form-data">  {{-- ADD THIS --}}
             @csrf
             @if(isset($student))
             @method('PUT')
@@ -97,6 +97,37 @@
                         </select>
                     </div>
 
+                 {{-- Student Image --}}
+<div class="col-md-6">
+    <label class="form-label">Student Image</label>
+    <input type="file" name="student_image" class="form-control" accept="image/*" onchange="previewImage(event)">
+
+    {{-- Current Image and Preview side by side --}}
+    <div class="mt-3 d-flex gap-4 flex-wrap align-items-start">
+        
+        {{-- Current Image --}}
+        @if(isset($student) && $student->student_image)
+            <div class="text-center">
+                <p class="mb-2 fw-bold text-primary">Current Image</p>
+                <img src="{{ asset('storage/' . $student->student_image) }}" 
+                     alt="Current Student Image"
+                     style="max-width: 180px; max-height: 150px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); object-fit: cover;">
+            </div>
+        @endif
+
+        {{-- Preview (for new upload) --}}
+        <div class="text-center">
+            <p class="mb-2 fw-bold text-success">Preview (New Upload)</p>
+            <img id="imagePreview" 
+                 src="{{ isset($student) && $student->student_image ? asset('storage/' . $student->student_image) : '' }}" 
+                 style="max-width: 180px; max-height: 150px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); object-fit: cover; display: {{ isset($student) && $student->student_image ? 'block' : 'none' }};">
+            @if(!isset($student) || !$student->student_image)
+                <p class="text-muted small mt-2">No image selected yet</p>
+            @endif
+        </div>
+    </div>
+</div>
+
 
                     {{-- Description --}}
                     <div class="col-12">
@@ -124,4 +155,14 @@
 
     </div>
 </div>
+
+
+<script>
+    function previewImage(event) {
+        const preview = document.getElementById('imagePreview');
+        preview.src = URL.createObjectURL(event.target.files[0]);
+        preview.style.display = 'block';
+    }
+</script>
+
 @endsection

@@ -2,28 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 
-class AllLedger extends Model
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class TeacherLedger extends Model
 {
-    protected $table = 'all_ledger';
+    use HasFactory;
+
+    protected $table = 'teacher_ledger';
 
     protected $fillable = [
-        'student_id',
         'teacher_id',
         'amount',
         'type',
-        'ledger_category',
         'title',
-        'description_fee',
-        'challan_no',
         'description',
     ];
-
-    public function student()
-    {
-        return $this->belongsTo(Student::class, 'student_id');
-    }
 
     public function teacher()
     {

@@ -88,6 +88,22 @@
                     </div>
 
                     <div class="col-md-6">
+                        <label class="form-label fw-semibold">D-Married Points</label>
+                        <input
+                            type="number"
+                            name="d_married_points"
+                            id="d-married-points"
+                            class="form-control"
+                            value="{{ old('d_married_points', $task->d_married_points ?? '') }}"
+                            min="0"
+                        >
+                        <small class="text-muted">
+                            Auto from selected category, or you can edit manually
+                        </small>
+                    </div>
+
+
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold">Task Name</label>
                         <input type="text" name="title" class="form-control"
                             value="{{ old('title', $task->title ?? '') }}">
@@ -311,6 +327,51 @@
         </div>
     </div>
 </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const catSelect   = document.querySelector('select[name="task_cat_id"]');
+    const pointsInput = document.getElementById('d-married-points');
+
+    if (!catSelect || !pointsInput) return;
+
+    let manuallyEdited = false;
+
+    // User manually types
+    pointsInput.addEventListener('input', function () {
+        manuallyEdited = true;
+    });
+
+    // Category change → auto-fill only if NOT manually edited
+    catSelect.addEventListener('change', function () {
+
+        const catId = this.value;
+        if (!catId) {
+            if (!manuallyEdited) {
+                pointsInput.value = 0;
+            }
+            return;
+        }
+
+        if (manuallyEdited) return;
+
+        fetch(`/task-cat/${catId}/points`)
+            .then(res => res.json())
+            .then(data => {
+                pointsInput.value = data.d_married_points ?? 0;
+            })
+            .catch(() => {
+                pointsInput.value = 0;
+            });
+    });
+
+});
+</script>
+
+
+
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

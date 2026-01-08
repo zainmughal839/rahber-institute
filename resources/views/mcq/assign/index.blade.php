@@ -19,7 +19,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <h3 class="card-title fw-bold mb-0">
                             <i class="bi bi-list-check me-2"></i>
-                            Assigned MCQ Papers
+                            Assigned  Papers
                         </h3>
 
                         @can('assign-paper.create')

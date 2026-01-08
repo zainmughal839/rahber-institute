@@ -122,7 +122,7 @@ class McqPaperController extends Controller
             'correct' => $correct,
             'wrong' => $attempt->total_questions - $correct,
             'score' => $correct,
-            'mcq_completed_at' => now(),  
+            'mcq_completed_at' => now(),   // ✅ MCQ completion indicator
         ]);
 
 

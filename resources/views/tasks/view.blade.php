@@ -184,21 +184,42 @@
                         <label class="fw-bold">Response</label>
 
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="response_type" value="assignment_show"
-                                {{ ($response->response_type ?? '') == 'assignment_show' ? 'checked' : '' }}>
-                            <label class="form-check-label">Assignment Show</label>
+                            <input class="form-check-input" type="radio"
+                                name="response_type"
+                                value="complete"
+                                {{ ($response->response_type ?? '') == 'complete' ? 'checked' : '' }}
+                                {{ ($mode === 'teacher' && $task->task_end && now()->gt($task->task_end)) ? 'disabled' : '' }}>
+                            <label class="form-check-label">Complete</label>
                         </div>
 
                         <div class="form-check mb-3">
-                            <input class="form-check-input" type="radio" name="response_type" value="objection"
-                                {{ ($response->response_type ?? '') == 'objection' ? 'checked' : '' }}>
-                            <label class="form-check-label">Objection</label>
+                            <input class="form-check-input" type="radio"
+                                name="response_type"
+                                value="not_complete"
+                                {{ ($response->response_type ?? '') == 'not_complete' ? 'checked' : '' }}
+                                {{ ($mode === 'teacher' && $task->task_end && now()->gt($task->task_end)) ? 'disabled' : '' }}>
+                            <label class="form-check-label">Not Complete</label>
                         </div>
+
+                        <div class="col-md-6 mt-2">
+    <label class="form-label fw-semibold">D-Married Points</label>
+    <input type="text" class="form-control"
+        value="{{ $response->d_married_points ?? 0 }}"
+        disabled>
+</div>
+
 
                         <textarea name="desc" class="form-control"
                             placeholder="Remarks">{{ $response->desc ?? '' }}</textarea>
 
-                        <button class="btn btn-primary mt-3">Submit Response</button>
+                            @if(!($mode === 'teacher' && $task->task_end && now()->gt($task->task_end)))
+<button class="btn btn-primary mt-3">Submit Response</button>
+@else
+<div class="alert alert-warning mt-3">
+    Deadline passed. Response is read-only.
+</div>
+@endif
+
                     </form>
 
                 </div>

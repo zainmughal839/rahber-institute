@@ -54,32 +54,33 @@ $obtainedSubjectiveMarks = $attempt?->subjective_obtained ?? 0;
 $totalOverallMarks = $totalMcqMarks + $totalSubjectiveMarks;
 $obtainedOverallMarks = $obtainedMcqMarks + $obtainedSubjectiveMarks;
 
-// RESULT VISIBILITY
-$canSeeResult = false;
+
+
+    // RESULT VISIBILITY - CORRECTED LOGIC
+   $canSeeResult = false;
 
 if ($mode === 'student' && $attempt) {
 
-    $isCompleted =
-    in_array($attempt->status, ['mcq_done', 'subjective_done'])
-    || $attempt->subjective_submitted;
-
+    // ✅ Paper is completed ONLY when status is subjective_done
+    $isCompleted = $attempt->status === 'present';
 
     if ($isCompleted) {
         if ($paper->result_mode === 'immediate') {
             $canSeeResult = true;
         } elseif (
-            $paper->result_mode === 'scheduled'
-            && $paper->result_date
-            && now()->greaterThanOrEqualTo($paper->result_date)
+            $paper->result_mode === 'scheduled' &&
+            $paper->result_date &&
+            now()->greaterThanOrEqualTo($paper->result_date)
         ) {
             $canSeeResult = true;
         }
     }
 
 } else {
-    // teacher / admin
+    // Admin / Teacher
     $canSeeResult = true;
 }
+
 
 
 
@@ -321,7 +322,7 @@ if ($mode === 'student' && $attempt) {
         @endif
 
         <!-- Student Info & Result Table -->
-        @if($mode === 'student')
+        @if($mode === 'student' && $paper->subjectiveQuestions->count() > 0)
             <div class="student-info">
                 <div>
                     <label>Name:</label> <span class="value">{{ $currentStudent->name ?? 'N/A' }}</span><br>
@@ -407,44 +408,51 @@ if ($mode === 'student' && $attempt) {
                     <p class="question">{{ $loop->iteration }}. {{ $q->question }}</p>
                     <div class="options">
                         @php
+                            // ORIGINAL OPTIONS (FIXED ORDER)
                             $opts = [
                                 'a' => $q->option_a,
                                 'b' => $q->option_b,
                                 'c' => $q->option_c,
                                 'd' => $q->option_d,
                             ];
-                            $values = array_values($opts);
-                            shuffle($values);
-                            $display_options = [
-                                ['label' => 'a', 'text' => $values[0] ?? ''],
-                                ['label' => 'b', 'text' => $values[1] ?? ''],
-                                ['label' => 'c', 'text' => $values[2] ?? ''],
-                                ['label' => 'd', 'text' => $values[3] ?? ''],
-                            ];
+
+                            // If attempt exists, use saved order (else default a,b,c,d)
+                            $order = $attempt && $attempt->question_order
+                                ? ($attempt->question_order[$q->id] ?? ['a','b','c','d'])
+                                : ['a','b','c','d'];
                         @endphp
 
-                        @foreach($display_options as $disp)
+                        @foreach($order as $opt)
                             @php
-                                $opt = $disp['label'];
-                                $text = $disp['text'];
+                                $text = $opts[$opt] ?? '';
                                 $ans = $answers->get($q->id);
                                 $isSelected = $ans && $ans->selected_option === $opt;
-                                $isCorrect = $opt === $q->correct_option;
+                                $isCorrect  = $opt === $q->correct_option;
+
                                 $class = ($mode !== 'student' || ($attempt && $canSeeResult))
                                     ? ($isCorrect ? 'correct' : ($isSelected && !$isCorrect ? 'wrong' : ''))
                                     : '';
                             @endphp
+
                             <div class="option {{ $class }}">
-                                <input type="radio" name="q{{ $q->id }}" value="{{ $opt }}" id="q{{ $q->id }}_{{ $opt }}"
-                                       class="answer-radio"
-                                       @if($mode === 'student' && !$attempt) required @endif
-                                       @if($attempt && $isSelected) checked @endif
-                                       @if($mode !== 'student' || $attempt) disabled @endif>
+                                <input type="radio"
+                                    name="q{{ $q->id }}"
+                                    value="{{ $opt }}"
+                                    id="q{{ $q->id }}_{{ $opt }}"
+                                    class="answer-radio"
+                                    @if($mode === 'student' && !$attempt) required @endif
+                                    @if($attempt && $isSelected) checked @endif
+                                    @if($mode !== 'student' || $attempt) disabled @endif
+                                >
+
                                 <label for="q{{ $q->id }}_{{ $opt }}" style="width:100%; cursor:pointer;">
                                     <strong>{{ strtoupper($opt) }}.</strong> {{ $text }}
                                 </label>
                             </div>
                         @endforeach
+
+
+                       
                     </div>
                     @if(($mode !== 'student' || ($attempt && $canSeeResult)) && !empty($q->reason))
                         <div class="reason"><strong>Explanation:</strong> {{ $q->reason }}</div>
@@ -456,16 +464,17 @@ if ($mode === 'student' && $attempt) {
         
 
 
-        @if($mode === 'student')
-            <div class="alert alert-info text-center fw-semibold mt-3 no-print">
-                 <strong>Notice:</strong>
-                After completing the MCQs, please refresh this page at
-                <span class="text-primary">
-                    {{ now()->addSeconds($remainingMcqSeconds)->format('h:i A') }}
-                </span>
-                to proceed to the <strong>Subjective section</strong>.
-            </div>
-        @endif
+      @if($mode === 'student' && $paper->subjectiveQuestions->count() > 0)
+    <div class="alert alert-info text-center fw-semibold mt-3 no-print">
+        <strong>Notice:</strong>
+        After completing the MCQs, please refresh this page at
+        <span class="text-primary">
+            {{ now()->addSeconds($remainingMcqSeconds)->format('h:i A') }}
+        </span>
+        to proceed to the <strong>Subjective section</strong>.
+    </div>
+@endif
+
 
 
         <!-- Subjective Section -->
@@ -478,11 +487,11 @@ if ($mode === 'student' && $attempt) {
             @if($mode === 'student' && $attempt && !$attempt->subjective_submitted && $allowSubjective)
 
                 <div id="subjectiveTimerSection" class="no-print"
-                    style="background:#9da0fc; color:#212529; padding:14px; text-align:center;
+                    style="background:#3677e0; color:#ffff; padding:14px; text-align:center;
                             border-radius:8px; font-size:18px; font-weight:700; margin-bottom:20px;">
                     Subjective Time Remaining:
                     <span id="subjectiveTimer">{{ gmdate('H:i:s', $remainingSubjectiveSeconds) }}</span>
-                    <p class="mb-0 text-danger fw-bold">Subjective Complete Auto Submit Paper</p>
+                    <p class="mb-0 text-black fw-bold">Subjective Complete Auto Submit Paper</p>
                 </div>
                 <!-- Same as before – no change needed -->
                 <form method="POST"
@@ -659,21 +668,17 @@ if ($mode === 'student' && $attempt) {
         @endif
 
 
-        @if($mode === 'student' && !$attempt)
-            </form>
+@if($mode === 'student' && $attempt && $attempt->status === 'present')
+    <div class="text-center mt-2 py-2">
+        <h3 style="color: #28a745; font-size: 18px; font-weight: 800;">Paper Submitted Successfully!</h3>
+        @if(!$canSeeResult)
+            <p class="mt-3 text-warning fw-bold">
+                Result will be available on:<br>
+                <strong>{{ $paper->result_date?->format('d M Y - h:i A') }}</strong>
+            </p>
         @endif
-
-        @if($mode === 'student' && $attempt && $attempt->subjective_submitted)
-            <div class="text-center mt-2 py-2">
-                <h3 style="color: #28a745; font-size: 18px; font-weight: 800;">Paper Submitted Successfully!</h3>
-                @if(!$canSeeResult)
-                    <p class="mt-3 text-warning fw-bold">
-                        Result will be available on:<br>
-                        <strong>{{ $paper->result_date?->format('d M Y - h:i A') }}</strong>
-                    </p>
-                @endif
-            </div>
-        @endif
+    </div>
+@endif
 
         <!-- Print & Back Buttons -->
         <div class="d-flex justify-content-between align-items-center mt-4 no-print">

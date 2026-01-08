@@ -41,6 +41,7 @@ class ProgramController extends Controller
             'shortname' => 'nullable|string|max:50',
             'program_code' => 'nullable|string|max:50|unique:programs,program_code',
             'description' => 'nullable|string',
+            'divided_fees' => 'nullable|integer|min:1', // ✅
         ]);
 
         $this->programRepo->create($request->only([
@@ -48,10 +49,12 @@ class ProgramController extends Controller
             'shortname',
             'program_code',
             'description',
+            'divided_fees',
         ]));
 
         return back()->with('success', 'Program created successfully.');
     }
+
 
     public function edit($id)
     {
@@ -66,6 +69,7 @@ class ProgramController extends Controller
             'shortname' => 'nullable|string|max:50',
             'program_code' => ['nullable', 'string', Rule::unique('programs')->ignore($id)],
             'description' => 'nullable|string',
+            'divided_fees' => 'nullable|integer|min:1', // ✅
         ]);
 
         $this->programRepo->update($id, $request->only([
@@ -73,10 +77,12 @@ class ProgramController extends Controller
             'shortname',
             'program_code',
             'description',
+            'divided_fees',
         ]));
 
         return back()->with('success', 'Program updated successfully.');
     }
+
 
     public function destroy($id)
     {

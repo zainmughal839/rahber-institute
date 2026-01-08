@@ -10,6 +10,7 @@ class Task extends Model
     'audience',
     'teacher_id',
     'task_cat_id',
+    'd_married_points',
     'session_program_id',
     'title',
     'task_start',

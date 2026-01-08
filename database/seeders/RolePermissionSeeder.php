@@ -123,6 +123,11 @@ class RolePermissionSeeder extends Seeder
             'assign-paper.noouse',
 
 
+             // assign-paper
+            'settings.index',
+            'settings.create',
+            'settings.update',
+            'settings.delete',
             
 
             // ROLES

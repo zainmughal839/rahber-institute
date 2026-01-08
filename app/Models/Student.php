@@ -9,7 +9,7 @@ class Student extends Model
      protected $fillable = [
         'name','father_name','cnic','phone','email','address','description',
         'stu_category_id','rollnum',
-        'session_program_id','program_id','class_subject_id'
+        'session_program_id','program_id','class_subject_id','student_image'
     ];
 
     public function classSubject()
@@ -36,6 +36,14 @@ class Student extends Model
     public function ledgers()
     {
         return $this->hasMany(AllLedger::class, 'student_id', 'id');
+    }
+
+
+   public function challans()
+    {
+        return $this->belongsToMany(Challan::class, 'challan_students')
+            ->withPivot('amount')
+            ->withTimestamps();
     }
 
 

@@ -44,6 +44,19 @@
                         <input type="text" name="name" class="form-control"
                             value="{{ old('name', $record->name ?? '') }}" required>
                     </div>
+                    
+                    <div class="col-md-6">
+    <label class="form-label fw-semibold">D-Married Points</label>
+    <input
+        type="number"
+        name="d_married_points"
+        class="form-control"
+        min="0"
+        value="{{ old('d_married_points', $record->d_married_points ?? 0) }}"
+        required
+    >
+</div>
+
 
                     <div class="col-12">
                         <label class="form-label fw-semibold">Description</label>

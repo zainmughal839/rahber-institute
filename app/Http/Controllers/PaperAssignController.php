@@ -18,7 +18,7 @@ use Carbon\Carbon;
 class PaperAssignController extends Controller
 {
 
-      public function __construct() {
+    public function __construct() {
         $this->middleware('permission:assign-paper.index')->only(['index']);
         $this->middleware('permission:assign-paper.create')->only(['create', 'store']);
         $this->middleware('permission:assign-paper.update')->only(['edit', 'update']);

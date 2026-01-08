@@ -17,16 +17,16 @@ use Illuminate\Support\Facades\DB;
 
 class TaskController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('permission:task.index')->only(['index', 'storeResponse']);
-        $this->middleware('permission:task.create')->only(['create','store']);
-        $this->middleware('permission:task.update')->only(['edit','update']);
-        $this->middleware('permission:task.delete')->only(['destroy']);
-    }
+public function __construct()
+{
+    $this->middleware('permission:task.index')->only(['index', 'storeResponse']);
+    $this->middleware('permission:task.create')->only(['create','store']);
+    $this->middleware('permission:task.update')->only(['edit','update']);
+    $this->middleware('permission:task.delete')->only(['destroy']);
+}
 
     /* ================= INDEX ================= */
-   public function index()
+public function index()
 {
     $user = auth()->user();
     $assignment = $user->userAssignment;
@@ -84,6 +84,7 @@ class TaskController extends Controller
             'audience'            => 'required|array',
             'teacher_id'          => 'nullable|exists:teachers,id',
             'task_cat_id'         => 'nullable|exists:task_cat,id',
+            'd_married_points' => 'nullable|integer|min:0',
             'session_program_id'  => 'nullable|exists:session_program,id',
             'title'               => 'nullable|string|max:255',
             'task_start'          => 'nullable|date',
@@ -168,6 +169,7 @@ class TaskController extends Controller
             'audience'            => 'required|array',
             'teacher_id'          => 'nullable|exists:teachers,id',
             'task_cat_id'         => 'nullable|exists:task_cat,id',
+            'd_married_points'    => 'nullable|integer|min:0',
             'session_program_id'  => 'nullable|exists:session_program,id',
             'title'               => 'required|string|max:255',
             'task_start'          => 'nullable|date',
@@ -177,16 +179,15 @@ class TaskController extends Controller
             'teacher_desc'        => 'nullable|string',
             'student_heading'     => 'nullable|string',
             'student_desc'        => 'nullable|string',
-
-            'test_category_id' => 'nullable|exists:test_cat,id',
-            'test_type'        => 'nullable|in:oral,written',
-            'test_title'       => 'nullable|string|max:255',
-            'test_desc'        => 'nullable|string',
-            'test_orientation' => 'nullable|string',
-            'result_announce_at' => 'nullable|date',
-            'paper_submit_at' => 'nullable|date',
-            'total_marks'     => 'nullable|integer',
-            'passing_marks'   => 'nullable|integer',
+            'test_category_id'    => 'nullable|exists:test_cat,id',
+            'test_type'           => 'nullable|in:oral,written',
+            'test_title'          => 'nullable|string|max:255',
+            'test_desc'           => 'nullable|string',
+            'test_orientation'    => 'nullable|string',
+            'result_announce_at'  => 'nullable|date',
+            'paper_submit_at'     => 'nullable|date',
+            'total_marks'         => 'nullable|integer',
+            'passing_marks'       => 'nullable|integer',
 
         ]);
 
@@ -288,24 +289,35 @@ public function view(Task $task)
 
 
 
+
 public function storeResponse(Request $request, Task $task)
 {
     $user = auth()->user();
     $assignment = $user->userAssignment;
 
-    // ❌ Block only STUDENT
     if ($assignment && $assignment->panel_type === 'student') {
         abort(403);
     }
 
+    // ⛔ Teacher readonly after deadline
+    if (
+        $assignment &&
+        $assignment->panel_type === 'teacher' &&
+        $task->task_end &&
+        now()->gt($task->task_end)
+    ) {
+        abort(403, 'Deadline passed. Read only.');
+    }
+
     $data = $request->validate([
-        'response_type' => 'required|in:assignment_show,objection',
+        'response_type' => 'required|in:complete,not_complete',
         'desc' => 'nullable|string'
     ]);
 
-    // ✅ Decide teacher_id
-    // Teacher → own response
-    // Admin / Staff / Others → task ke teacher ka response
+    $points = $data['response_type'] === 'complete'
+        ? 0
+        : $task->d_married_points;
+
     $teacherId = ($assignment && $assignment->panel_type === 'teacher')
         ? $assignment->assignable_id
         : $task->teacher_id;
@@ -317,12 +329,14 @@ public function storeResponse(Request $request, Task $task)
         ],
         [
             'response_type' => $data['response_type'],
-            'desc' => $data['desc'] ?? null
+            'desc' => $data['desc'],
+            'd_married_points' => $points
         ]
     );
 
-    return back()->with('success', 'Response submitted successfully');
+    return back()->with('success', 'Response saved successfully');
 }
+
 
 
 
