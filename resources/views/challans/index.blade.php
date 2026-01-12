@@ -29,12 +29,16 @@
                             <i class="bi bi-receipt me-2"></i> Fee Challans
                         </h3>
                         <div class="d-flex gap-2 flex-wrap">
+                            @can('challan.create')
                             <a href="{{ route('challans.create') }}" class="btn btn-outline-light btn-sm shadow-sm">
                                 <i class="bi bi-plus-circle me-1"></i> Generate Challan
                             </a>
+                            @endcan
+                            @can('challan.pay')
                             <a href="{{ route('challans.pay') }}" class="btn btn-outline-light btn-sm shadow-sm">
                                 <i class="bi bi-cash-coin me-1"></i> Pay Challans
                             </a>
+                            @endcan
                             <button class="btn btn-outline-light btn-sm" id="printSelected">
                                 <i class="bi bi-printer"></i> Print Selected
                             </button>
@@ -140,6 +144,7 @@
                                                    class="btn btn-warning btn-sm" title="Edit">
                                                     <i class="bi bi-pencil-square"></i>
                                                 </a>--}}
+                                                @can('challan.delete')
                                                 <button type="button"
                                                         class="btn btn-danger btn-sm delete-challan"
                                                         data-id="{{ $challan->id }}"
@@ -147,6 +152,7 @@
                                                         title="Delete">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
+                                                @endcan
                                             </div>
 
                                             <form id="delete-form-{{ $challan->id }}"

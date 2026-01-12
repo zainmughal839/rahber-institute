@@ -87,7 +87,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-6 teacher-field">
                         <label class="form-label fw-semibold">D-Married Points</label>
                         <input
                             type="number"
@@ -369,8 +369,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 </script>
-
-
 
 
 <script>

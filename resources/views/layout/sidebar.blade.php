@@ -175,7 +175,21 @@ if (session('is_panel_user') && $assignment && $assignment->panel_type === 'stud
                             </a>
                         </li>
                         @endcan
-                        {{-- @endif--}}
+                        
+                        
+                        @can('student.promote')
+                        <li class="nav-item">
+                            <a href="{{ route('students.promote.select') }}" 
+                            class="nav-link {{ request()->routeIs('students.promote.select', 'students.promote.form') ? 'active' : '' }}">
+                                <i class="bi bi-circle nav-icon"></i>
+                                <p>Promote student</p>
+                            </a>
+                        </li>
+                        @endcan
+                        
+        
+
+                        
 
                         @can('teacher.create')
                         <li class="nav-item">
@@ -239,7 +253,7 @@ if (session('is_panel_user') && $assignment && $assignment->panel_type === 'stud
                             <a href="{{ route('class-subjects.index') }}"
                                 class="nav-link {{ $currentRoute === 'class-subjects.index' ? 'active' : '' }}">
                                 <i class="nav-icon bi bi-circle"></i>
-                                <p>Subject assign Session</p>
+                                <p>Create Class</p>
                             </a>
                         </li>
                         @endcan
@@ -377,87 +391,132 @@ if (session('is_panel_user') && $assignment && $assignment->panel_type === 'stud
 
 
 
-                 <li class="nav-header">Accounts / Cash</li>
 
-                <li class="nav-item {{ request()->is('challans/pay', 'challans*')  ? 'menu-open' : '' }}">
-                    <a href="#" class="nav-link {{ request()->is('challans*') ? 'active' : '' }}">
-                        <i class="nav-icon bi bi-shield-lock"></i>
+
+                @canany(['challan.index','teacher-salary.index','expense-head.index','expense.create','profit-loss.index'])
+                <li class="nav-header">Accounts / Cash</li>
+
+                @php
+                    $accountsActive = request()->routeIs('challans.*','teacher-salaries.*','expense_heads.*','expenses.*','profit_loss.*');
+                @endphp
+
+                <li class="nav-item {{ $accountsActive ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link {{ $accountsActive ? 'active' : '' }}">
+                        <i class="nav-icon bi bi-cash-stack"></i>
                         <p>
                             Accounts / Cash
                             <i class="nav-arrow bi bi-chevron-right"></i>
                         </p>
                     </a>
+
                     <ul class="nav nav-treeview">
-                        <!-- Users -->
-                        <li class="nav-item {{ request()->is('challans*')  ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->is('challans*') ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-people-fill"></i>
+
+                        {{-- ================= CHALLANS ================= --}}
+                        @canany(['challan.index','teacher-salary.index'])
+                        @php
+                            $challanActive = request()->routeIs('challans.*','teacher-salaries.*');
+                        @endphp
+
+                        <li class="nav-item {{ $challanActive ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ $challanActive ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-receipt"></i>
                                 <p>
                                     Challans
                                     <i class="nav-arrow bi bi-chevron-right"></i>
                                 </p>
                             </a>
-                            <ul class="nav nav-treeview">
 
-                               <!-- Challan Create -->
+                            <ul class="nav nav-treeview">
+                                @can('challan.index')
                                 <li class="nav-item">
                                     <a href="{{ route('challans.index') }}"
-                                        class="nav-link {{ request()->routeIs('challans.index') ? 'active' : '' }}">
-                                         <i class="nav-icon bi bi-circle"></i>
+                                    class="nav-link {{ request()->routeIs('challans.index') ? 'active' : '' }}">
+                                        <i class="bi bi-circle nav-icon"></i>
                                         <p>Fees Challan</p>
                                     </a>
                                 </li>
+                                @endcan
 
-                                 <!-- Challan Create -->
+                                @can('teacher-salary.index')
                                 <li class="nav-item">
                                     <a href="{{ route('teacher-salaries.index') }}"
-                                        class="nav-link {{ request()->routeIs('challans.index') ? 'active' : '' }}">
-                                         <i class="nav-icon bi bi-circle"></i>
-                                        <p>Teacher salary</p>
+                                    class="nav-link {{ request()->routeIs('teacher-salaries.index') ? 'active' : '' }}">
+                                        <i class="bi bi-circle nav-icon"></i>
+                                        <p>Salary Voucher</p>
                                     </a>
                                 </li>
-
+                                @endcan
                             </ul>
                         </li>
-                        <!-- Roles -->
-                        <li class="nav-item {{  request()->is('challans/pay*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{  request()->is('challans/pay*') ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-cash-stack"></i>
+                        @endcan
+
+                        {{-- ================= EXPENSE ================= --}}
+                        @canany(['expense-head.index','expense.create'])
+                        @php
+                            $expenseActive = request()->routeIs('expense_heads.*','expenses.*');
+                        @endphp
+
+                        <li class="nav-item {{ $expenseActive ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ $expenseActive ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-wallet2"></i>
                                 <p>
-                                    Cash In
+                                    Expense
                                     <i class="nav-arrow bi bi-chevron-right"></i>
                                 </p>
                             </a>
 
                             <ul class="nav nav-treeview">
-                               
-
-                                <!-- Fee Challan Pay -->
+                                @can('expense-head.index')
                                 <li class="nav-item">
-                                    <a href="{{ route('challans.pay') }}" 
-                                    class="nav-link {{ request()->is('challans/pay*') ? 'active' : '' }}">
-                                        <i class="bi bi-credit-card-2-front nav-icon"></i>
-                                        <p>Fee Challan Pay</p>
+                                    <a href="{{ route('expense_heads.index') }}"
+                                    class="nav-link {{ request()->routeIs('expense_heads.index') ? 'active' : '' }}">
+                                        <i class="bi bi-circle nav-icon"></i>
+                                        <p>Expense Heads</p>
                                     </a>
                                 </li>
+                                @endcan
 
-
-                               
+                                @can('expense.create')
+                                <li class="nav-item">
+                                    <a href="{{ route('expenses.create') }}"
+                                    class="nav-link {{ request()->routeIs('expenses.create') ? 'active' : '' }}">
+                                        <i class="bi bi-circle nav-icon"></i>
+                                        <p>Add Expense</p>
+                                    </a>
+                                </li>
+                                @endcan
                             </ul>
                         </li>
+                        @endcan
 
+                        {{-- ================= CASH IN ================= --}}
+                        @can('challan.pay')
                         <li class="nav-item">
-                            <a href="{{ route('user-assignments.index') }}"
-                                class="nav-link {{ $currentRoute === 'user-assignments.index' ? 'active' : '' }}">
-                                <i class="nav-icon bi bi-people"></i>
-                                <p>Panel Assignments</p>
+                            <a href="{{ route('challans.pay') }}"
+                            class="nav-link {{ request()->routeIs('challans.pay') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-cash-coin"></i>
+                                <p>Fee Challan Pay</p>
                             </a>
                         </li>
+                        @endcan
+
+                        {{-- ================= PROFIT / LOSS ================= --}}
+                        @can('profit-loss.index')
+                        <li class="nav-item">
+                            <a href="{{ route('profit_loss.index') }}"
+                            class="nav-link {{ request()->routeIs('profit_loss.index') ? 'active' : '' }}">
+                                <i class="nav-icon bi bi-graph-up-arrow"></i>
+                                <p>Profit & Loss Report</p>
+                            </a>
+                        </li>
+                        @endcan
+
                     </ul>
-
                 </li>
+                @endcan
 
-                @canany(['role.index', 'role.create', 'user.index', 'user.create', 'user-assignment.index',
+
+                 @canany(['role.index', 'role.create', 'user.index', 'user.create', 'user-assignment.index',
                 'user-assignment.create'])
                 <li class="nav-header">Role & Permission</li>
 
@@ -548,8 +607,6 @@ if (session('is_panel_user') && $assignment && $assignment->panel_type === 'stud
 
                 </li>
                 @endcan
-
-
 
 
                 

@@ -14,6 +14,7 @@ class TeacherLedger extends Model
 
     protected $fillable = [
         'teacher_id',
+        'voucher_no', 
         'amount',
         'type',
         'title',

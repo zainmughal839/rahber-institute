@@ -14,9 +14,11 @@
                             Pay Teacher Salary
                         </h3>
                         <!-- Assuming you have an index route -->
+                        @can('teacher-salary.index')
                         <a href="{{ route('teacher-salaries.index') }}" class="btn btn-light btn-sm shadow-sm">
                             <i class="bi bi-list-ul me-1"></i> All Payments
                         </a>
+                        @endcan
                     </div>
                 </div>
 
@@ -47,7 +49,7 @@
 
                         <!-- Teacher Selection -->
                         <div class="row mb-4">
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <label class="form-label fw-semibold">Teacher <span class="text-danger">*</span></label>
                                 <select name="teacher_id" id="teacher" class="form-select" required>
                                     <option value="">Select Teacher</option>
@@ -55,6 +57,13 @@
                                     <option value="{{ $teacher->id }}">{{ $teacher->name }} - {{ $teacher->email }}</option>
                                     @endforeach
                                 </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Voucher No</label>
+                                <input type="text"
+                                    class="form-control fw-bold text-success"
+                                    value="{{ $nextVoucherNo }}"
+                                    readonly>
                             </div>
                         </div>
 
@@ -78,7 +87,7 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">D-married Points</label>
-                                <input type="number" id="demerits" class="form-control"  value="0">
+                                <input type="number" name="demerits" id="demerits" class="form-control" value="0">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Salary Cutting Amount <span class="text-danger">*</span></label>

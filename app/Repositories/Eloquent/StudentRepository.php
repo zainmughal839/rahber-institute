@@ -7,6 +7,14 @@ use App\Repositories\Interfaces\StudentRepositoryInterface;
 
 class StudentRepository implements StudentRepositoryInterface
 {
+
+    protected $model;
+
+    public function __construct(Student $model)
+    {
+        $this->model = $model;
+    }
+
     public function all()
     {
         return Student::with(['sessionProgram.session', 'sessionProgram.program'])
@@ -16,6 +24,17 @@ class StudentRepository implements StudentRepositoryInterface
     public function find($id)
     {
         return Student::findOrFail($id);
+    }
+
+     public function findOrFail($id)
+    {
+        return $this->model->findOrFail($id);
+    }
+
+    // If you want even more consistency, you can also add:
+    public function findById($id)
+    {
+        return $this->find($id);
     }
 
     public function create(array $data)

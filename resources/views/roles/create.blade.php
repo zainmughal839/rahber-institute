@@ -24,11 +24,11 @@
                     </div>
                 </div>
 
-                <!-- Validation Errors -->
+                <!-- Messages -->
                 @if ($errors->any())
                 <div class="alert alert-danger alert-dismissible m-3">
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    <strong><i class="bi bi-exclamation-triangle"></i> Please fix the following:</strong>
+                    <strong><i class="bi bi-exclamation-triangle-fill"></i> Please fix the following:</strong>
                     <ul class="mb-0 mt-2">
                         @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -47,23 +47,25 @@
 
                 <!-- Form -->
                 <form method="POST"
-                    action="{{ isset($role) ? route('roles.update', $role->id) : route('roles.store') }}">
+                      action="{{ isset($role) ? route('roles.update', $role->id) : route('roles.store') }}">
                     @csrf
                     @if(isset($role))
                     @method('PUT')
                     @endif
 
                     <div class="card-body">
+
                         <div class="row mb-4">
                             <!-- Role Name -->
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Role Key (Slug) <span
-                                        class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold">Role Key (Slug) <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-tag"></i></span>
                                     <input type="text" name="name"
-                                        class="form-control @error('name') is-invalid @enderror"
-                                        value="{{ old('name', $role->name ?? '') }}" placeholder="e.g. admin" required>
+                                           class="form-control @error('name') is-invalid @enderror"
+                                           value="{{ old('name', $role->name ?? '') }}"
+                                           placeholder="e.g. admin, teacher, student"
+                                           required>
                                 </div>
                                 @error('name')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
@@ -71,32 +73,53 @@
                             </div>
                         </div>
 
-                        <hr>
+                        <hr class="my-4">
 
-                        <!-- Permission Section -->
-                        <h5 class="fw-bold mb-3">
-                            <i class="bi bi-shield-check"></i> Assign Permissions
+                        <!-- Permissions grouped by prefix -->
+                        <h5 class="fw-bold mb-4">
+                            <i class="bi bi-shield-check me-2"></i>
+                            Assign Permissions
                         </h5>
 
-                        <div class="row">
-                            @foreach($perms as $perm)
-                            <div class="col-md-3 mb-3">
-                                <div class="form-check border rounded p-2 shadow-sm small">
-                                    <input class="form-check-input" type="checkbox" name="permissions[]"
-                                        value="{{ $perm->name }}" id="perm{{ $perm->id }}"
-                                        {{ in_array($perm->name, old('permissions', $assigned ?? [])) ? 'checked' : '' }}>
+                        @php
+                            $grouped = [];
+                            foreach($perms as $perm) {
+                                $parts = explode('.', $perm->name, 2);
+                                $group = $parts[0] ?? 'Other';
+                                $grouped[$group][] = $perm;
+                            }
+                        @endphp
 
-                                    <label class="form-check-label ms-1" for="perm{{ $perm->id }}">
-                                        {{ $perm->display_name ?? ucfirst($perm->name) }}
-                                    </label>
+                        @foreach($grouped as $groupName => $permissions)
+                        <div class="card mb-4 shadow-sm border-0">
+                            <div class="card-header bg-light fw-bold text-primary">
+                                <i class="bi bi-folder2-open me-2"></i>
+                                {{ ucfirst(str_replace('-', ' ', $groupName)) }}
+                                <span class="badge bg-primary ms-2">{{ count($permissions) }}</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    @foreach($permissions as $perm)
+                                    <div class="col-md-4 col-lg-3">
+                                        <div class="form-check border rounded p-2 hover-light small">
+                                            <input class="form-check-input" type="checkbox" name="permissions[]"
+                                                   value="{{ $perm->name }}" id="perm{{ $perm->id }}"
+                                                   {{ in_array($perm->name, old('permissions', $assigned ?? [])) ? 'checked' : '' }}>
+
+                                            <label class="form-check-label ms-2" for="perm{{ $perm->id }}">
+                                                {{ $perm->display_name ?? str_replace(['.'], ' → ', ucfirst($perm->name)) }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    @endforeach
                                 </div>
                             </div>
-                            @endforeach
                         </div>
+                        @endforeach
 
                     </div>
 
-                    <!-- Footer Buttons -->
+                    <!-- Footer -->
                     <div class="card-footer bg-light border-top">
                         <div class="d-flex justify-content-between align-items-center">
                             <a href="{{ route('roles.index') }}" class="btn btn-secondary">
@@ -104,7 +127,7 @@
                             </a>
 
                             <button type="submit" class="btn btn-success px-5">
-                                <i class="bi {{ isset($role) ? 'bi-check2-all' : 'bi-save' }}"></i>
+                                <i class="bi {{ isset($role) ? 'bi-check2-all' : 'bi-save' }} me-2"></i>
                                 {{ isset($role) ? 'Update Role' : 'Save Role' }}
                             </button>
                         </div>
@@ -118,3 +141,10 @@
     </div>
 </div>
 @endsection
+
+<style>
+    .hover-light:hover {
+        background-color: #f8f9fa;
+        transition: background-color 0.2s;
+    }
+</style>

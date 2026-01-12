@@ -13,9 +13,11 @@
                             <i class="bi bi-file-earmark-text me-2"></i>
                             Generate Fee Challan
                         </h3>
+                        @can('challan.index')
                         <a href="{{ route('challans.index') }}" class="btn btn-light btn-sm shadow-sm">
                             <i class="bi bi-list-ul me-1"></i> All Challans
                         </a>
+                        @endcan
                     </div>
                 </div>
 

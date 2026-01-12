@@ -12,7 +12,6 @@
 
     <div class="card shadow">
 
-
         <div class="card-header bg-primary text-white">
             <h3 class="card-title fw-bold">
                 <i class="bi bi-person-plus"></i>
@@ -31,7 +30,7 @@
 
         {{-- FORM START --}}
         <form action="{{ isset($student) ? route('students.update', $student->id) : route('students.store') }}"
-            method="POST" enctype="multipart/form-data">  {{-- ADD THIS --}}
+            method="POST" enctype="multipart/form-data"> {{-- ADD THIS --}}
             @csrf
             @if(isset($student))
             @method('PUT')
@@ -84,56 +83,61 @@
 
                     {{-- Student Category --}}
                     <div class="col-md-6">
-                        <label class="form-label">Student Category</label>
-                        <select name="stu_category_id" class="form-control">
-                            <option value="">-- Select Category --</option>
+                        <label class="form-label">Student Categories</label>
 
+                        <select name="stu_category_ids[]" class="form-control my-select" multiple>
                             @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}"
-                                {{ old('stu_category_id', $student->stu_category_id ?? '') == $cat->id ? 'selected' : '' }}>
-                                {{ $cat->name }}
-                            </option>
+                                <option value="{{ $cat->id }}"
+                                    {{ in_array(
+                                        $cat->id,
+                                        old('stu_category_ids', isset($student)
+                                            ? $student->categories->pluck('id')->toArray()
+                                            : []
+                                        )
+                                    ) ? 'selected' : '' }}>
+                                    {{ $cat->name }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
 
-                 {{-- Student Image --}}
-<div class="col-md-6">
-    <label class="form-label">Student Image</label>
-    <input type="file" name="student_image" class="form-control" accept="image/*" onchange="previewImage(event)">
 
-    {{-- Current Image and Preview side by side --}}
-    <div class="mt-3 d-flex gap-4 flex-wrap align-items-start">
-        
-        {{-- Current Image --}}
-        @if(isset($student) && $student->student_image)
-            <div class="text-center">
-                <p class="mb-2 fw-bold text-primary">Current Image</p>
-                <img src="{{ asset('storage/' . $student->student_image) }}" 
-                     alt="Current Student Image"
-                     style="max-width: 180px; max-height: 150px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); object-fit: cover;">
-            </div>
-        @endif
+                    {{-- Student Image --}}
+                    <div class="col-md-6">
+                        <label class="form-label">Student Image</label>
+                        <input type="file" name="student_image" class="form-control" accept="image/*"
+                            onchange="previewImage(event)">
 
-        {{-- Preview (for new upload) --}}
-        <div class="text-center">
-            <p class="mb-2 fw-bold text-success">Preview (New Upload)</p>
-            <img id="imagePreview" 
-                 src="{{ isset($student) && $student->student_image ? asset('storage/' . $student->student_image) : '' }}" 
-                 style="max-width: 180px; max-height: 150px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); object-fit: cover; display: {{ isset($student) && $student->student_image ? 'block' : 'none' }};">
-            @if(!isset($student) || !$student->student_image)
-                <p class="text-muted small mt-2">No image selected yet</p>
-            @endif
-        </div>
-    </div>
-</div>
+                        {{-- Current Image and Preview side by side --}}
+                        <div class="mt-3 d-flex gap-4 flex-wrap align-items-start">
 
+                            {{-- Current Image --}}
+                            @if(isset($student) && $student->student_image)
+                            <div class="text-center">
+                                <p class="mb-2 fw-bold text-primary">Current Image</p>
+                                <img src="{{ asset('storage/' . $student->student_image) }}" alt="Current Student Image"
+                                    style="max-width: 180px; max-height: 150px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); object-fit: cover;">
+                            </div>
+                            @endif
+
+                            {{-- Preview (for new upload) --}}
+                            <div class="text-center">
+                                <p class="mb-2 fw-bold text-success">Preview (New Upload)</p>
+                                <img id="imagePreview"
+                                    src="{{ isset($student) && $student->student_image ? asset('storage/' . $student->student_image) : '' }}"
+                                    style="max-width: 180px; max-height: 150px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); object-fit: cover; display: {{ isset($student) && $student->student_image ? 'block' : 'none' }};">
+                                @if(!isset($student) || !$student->student_image)
+                                <p class="text-muted small mt-2">No image selected yet</p>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
 
                     {{-- Description --}}
                     <div class="col-12">
                         <label class="form-label">Description</label>
                         <textarea name="description" class="form-control">
-                            {{ old('description', $student->description ?? '') }}
+                        {{ old('description', $student->description ?? '') }}
                         </textarea>
                     </div>
 

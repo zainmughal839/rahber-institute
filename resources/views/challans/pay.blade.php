@@ -13,9 +13,11 @@
                             <i class="bi bi-cash-coin me-2"></i>
                             Receive Fee Payment
                         </h3>
+                        @can('challan.index')
                         <a href="{{ route('challans.index') }}" class="btn btn-light btn-sm shadow-sm">
                             <i class="bi bi-list-ul me-1"></i> All Challans
                         </a>
+                        @endcan
                     </div>
                 </div>
 

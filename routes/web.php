@@ -26,6 +26,9 @@ use App\Http\Controllers\PaperAssignController;
 use App\Http\Controllers\ChallanController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\TeacherSalariesController;
+use App\Http\Controllers\ExpenseHeadController;
+use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ProfitLossController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -319,11 +322,8 @@ Route::middleware('auth')->group(function () {
     // / class teacher
     Route::get('class-teacher/all', [ClassTeacherController::class, 'all'])->name('class-teacher.all');
     Route::resource('class-teacher', ClassTeacherController::class)->except(['show']);
-    Route::get('class-teacher/{id}/show', [ClassTeacherController::class, 'show'])
-        ->name('class-teacher.show');
+    Route::get('class-teacher/{id}/show', [ClassTeacherController::class, 'show'])->name('class-teacher.show');
     Route::get('class-subject/{id}/subjects', [ClassTeacherController::class, 'getSubjects'])->name('class-subject.subjects');
-
-
 
     //// USER ASSIGNMENTS
     Route::resource('user-assignments', App\Http\Controllers\UserAssignmentController::class)->names([
@@ -355,10 +355,8 @@ Route::middleware('auth')->group(function () {
         ->name('tasks.response')
         ->middleware('permission:task.index');
 
-
     // announcement
     Route::resource('announcements', AnnouncementController::class);
-
 
     // MCQ Papers (CRUD)
     Route::prefix('mcqs/banks/{bank}')->group(function () {
@@ -517,6 +515,67 @@ Route::middleware('auth')->group(function () {
     )->name('teacher-salaries.get-data');
 
     Route::resource('teacher-salaries', TeacherSalariesController::class);
+
+    Route::delete('teacher-salaries/{id}', [TeacherSalariesController::class, 'destroy'])
+    ->name('teacher-salaries.destroy');
+
+
+    /// Expense Head
+
+    
+    Route::get('/expense_heads/all', [ExpenseHeadController::class, 'index'])->name('expense_heads.all');
+
+    Route::resource('expense_heads', ExpenseHeadController::class)->names([
+        'index' => 'expense_heads.index',
+        'create' => 'expense_heads.create',
+        'store' => 'expense_heads.store',
+        'show' => 'expense_heads.show',
+        'edit' => 'expense_heads.edit',
+        'update' => 'expense_heads.update',
+        'destroy' => 'expense_heads.destroy',
+    ]);
+
+
+
+    // Expenses
+    Route::resource('expenses', ExpenseController::class)->only([
+        'index', 'create', 'store', 'destroy'
+    ]);
+    Route::get('expenses/voucher/{voucherNo}', [ExpenseController::class, 'show'])->name('expenses.voucher');
+
+    Route::get('expenses/print/{voucherNo}', [ExpenseController::class, 'print'])->name('expenses.print');
+
+    Route::get('expenses/pdf/{voucherNo}', [ExpenseController::class, 'pdf'])->name('expenses.pdf');
+
+    // Profit Loss
+
+    Route::get('/profit-loss', [ProfitLossController::class, 'index'])->name('profit_loss.index');
+    Route::get('/profit-loss/print', [ProfitLossController::class, 'print'])->name('profit_loss.print');
+    Route::get('/profit-loss/pdf', [ProfitLossController::class, 'pdf'])->name('profit_loss.pdf');
+
+
+
+    // In routes/web.php (add these routes)
+
+    Route::get('/students/{id}/promote', [StudentController::class, 'promoteForm'])->name('students.promote.form');
+Route::post('/students/{id}/promote', [StudentController::class, 'promote'])->name('students.promote');
+Route::get('/students/{id}/promotion-history', [StudentController::class, 'promotionHistory'])->name('students.promotion.history');
+Route::get('/students/promotion-histories', [StudentController::class, 'allPromotionHistories'])->name('students.all.promotion.histories');
+
+
+
+    Route::get('/students/promote/select', [StudentController::class, 'promoteSelect'])
+        ->name('students.promote.select');
+
+    // Existing routes (keep them)
+    Route::get('/students/{id}/promote', [StudentController::class, 'promoteForm'])
+        ->name('students.promote.form');
+    Route::post('/students/{id}/promote', [StudentController::class, 'promote'])
+        ->name('students.promote');
+        
+
+
+
 });
 
 

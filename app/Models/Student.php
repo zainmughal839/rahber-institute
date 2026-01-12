@@ -7,10 +7,25 @@ use Illuminate\Database\Eloquent\Model;
 class Student extends Model
 {
      protected $fillable = [
-        'name','father_name','cnic','phone','email','address','description',
-        'stu_category_id','rollnum',
+        'name','father_name','cnic','phone','email','address','description','rollnum',
         'session_program_id','program_id','class_subject_id','student_image'
     ];
+
+    // MULTIPLE CATEGORIES
+    public function categories()
+    {
+        return $this->belongsToMany(
+            StuCategory::class,
+            'student_stu_category',
+            'student_id',
+            'stu_category_id'
+        )->withTimestamps();
+    }
+
+    public function classHistories()
+    {
+        return $this->hasMany(StudentClassHistory::class)->orderBy('promoted_at', 'desc');
+    }
 
     public function classSubject()
     {
@@ -27,7 +42,6 @@ class Student extends Model
         return $this->belongsTo(SessionProgram::class, 'session_program_id');
     }
 
-
     public function program()
     {
         return $this->belongsTo(\App\Models\Program::class, 'program_id');
@@ -38,7 +52,6 @@ class Student extends Model
         return $this->hasMany(AllLedger::class, 'student_id', 'id');
     }
 
-
    public function challans()
     {
         return $this->belongsToMany(Challan::class, 'challan_students')
@@ -46,11 +59,10 @@ class Student extends Model
             ->withTimestamps();
     }
 
-
     public function tasks()
-{
-    return $this->belongsToMany(Task::class, 'student_task');
-}
+    {
+        return $this->belongsToMany(Task::class, 'student_task');
+    }
 
 
 

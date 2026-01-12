@@ -32,19 +32,89 @@
                             </a>
                             @endcan
 
-                            @if(isset($showAll))
-                            <a href="{{ route('students.index') }}" class="btn btn-outline-light btn-sm">
-                                <i class="bi bi-arrow-left-circle me-1"></i> Back to Paginated
-                            </a>
-                            @else
-                            <a href="{{ route('students.index', ['all' => '1']) }}"
+                           @if($showAll)
+                                <a href="{{ route('students.index', request()->except('all')) }}"
                                 class="btn btn-outline-light btn-sm">
-                                <i class="bi bi-list-ul me-1"></i> View All Records
-                            </a>
+                                    <i class="bi bi-arrow-left-circle me-1"></i> Back to Paginated
+                                </a>
+                            @else
+                                <a href="{{ route('students.index', array_merge(request()->query(), ['all' => 1])) }}"
+                                class="btn btn-outline-light btn-sm">
+                                    <i class="bi bi-list-ul me-1"></i> View All Records
+                                </a>
                             @endif
                         </div>
                     </div>
                 </div>
+
+                {{-- FILTER FORM --}}
+                <div class="card-body border-bottom py-3">
+                    <form method="GET" action="{{ route('students.index') }}" class="row g-3">
+
+                        <div class="col-md-2">
+                            <input type="text" name="name"
+                                class="form-control form-control-sm"
+                                placeholder="Student Name"
+                                value="{{ request('name') }}">
+                        </div>
+
+                        <div class="col-md-2">
+                            <input type="text" name="rollnum"
+                                class="form-control form-control-sm"
+                                placeholder="Roll No"
+                                value="{{ request('rollnum') }}">
+                        </div>
+
+                        
+
+                        <div class="col-md-2">
+                            <select name="program_id" class="form-select my-select sm">
+                                <option value="">All Programs</option>
+                                @foreach($programs as $program)
+                                    <option value="{{ $program->id }}"
+                                        {{ request('program_id') == $program->id ? 'selected' : '' }}>
+                                        {{ $program->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <select name="class_subject_id" class="form-select my-select sm">
+                                <option value="">All Classes</option>
+                                @foreach($classes as $class)
+                                    <option value="{{ $class->id }}"
+                                        {{ request('class_subject_id') == $class->id ? 'selected' : '' }}>
+                                        {{ $class->class_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <select name="stu_category_ids[]" class="form-control my-select sm" single>
+                                <option value="">All category</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat->id }}"
+                                        {{ in_array($cat->id, request('stu_category_ids', [])) ? 'selected' : '' }}>
+                                        {{ $cat->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-2 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-funnel me-1"></i> Filter
+                            </button>
+
+                            <a href="{{ route('students.index') }}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-arrow-clockwise"></i> Reset
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
 
                 <!-- Table -->
                 <div class="card-body p-0">
@@ -73,7 +143,13 @@
                                             {{ $s->name }}
                                         </a>
                                     </td> -->
-                                    <td>{{ $s->name }}</td>
+                                    <td>
+                                        <a href="{{ route('students.ledger', $s->id) }}"
+                                        class="text-success fw-bold text-decoration-none">
+                                            {{ $s->name }}
+                                        </a>
+                                    </td>
+
 
                                     <!-- <td>{{ $s->father_name }}</td> -->
                                     <td>{{ $s->rollnum }}</td>
@@ -89,25 +165,25 @@
                                     </td> -->
 
                                   <td>
-    @php 
-        $sp = $s->sessionProgram; 
-        $program = $s->program; 
-    @endphp
+                                    @php 
+                                        $sp = $s->sessionProgram; 
+                                        $program = $s->program; 
+                                    @endphp
 
-    <small class="text-muted">
+                                    <small class="text-muted">
 
-        {{-- Session dates --}}
-        {{ $sp?->session?->start_date ? \Carbon\Carbon::parse($sp->session->start_date)->format('d M Y') : '' }}
-        -
-        {{ $sp?->session?->end_date ? \Carbon\Carbon::parse($sp->session->end_date)->format('d M Y') : '' }}
+                                        {{-- Session dates --}}
+                                        {{ $sp?->session?->start_date ? \Carbon\Carbon::parse($sp->session->start_date)->format('d M Y') : '' }}
+                                        -
+                                        {{ $sp?->session?->end_date ? \Carbon\Carbon::parse($sp->session->end_date)->format('d M Y') : '' }}
 
-        /
+                                        /
 
-        {{-- Student Program (single program_id) --}}
-        {{ $program?->name ?? 'No Program' }}
+                                        {{-- Student Program (single program_id) --}}
+                                        {{ $program?->name ?? 'No Program' }}
 
-    </small>
-</td>
+                                    </small>
+                                </td>
 
 
                                     @canany(['student.update', 'student.delete'])
@@ -156,40 +232,17 @@
                 </div>
 
                 <!-- Pagination -->
-                @if (!isset($showAll) && $data instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                @if(!$showAll && $data instanceof \Illuminate\Pagination\LengthAwarePaginator)
                 <div class="card-footer bg-light border-top">
                     {{ $data->links('pagination::bootstrap-5') }}
                 </div>
                 @endif
+
 
             </div>
         </div>
     </div>
 </div>
 
-<!-- SweetAlert Delete Confirmation -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const id = this.getAttribute('data-id');
-        const name = this.getAttribute('data-name');
 
-        Swal.fire({
-            title: 'Are you sure?',
-            text: `Delete student "${name}"? This cannot be undone!`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('delete-form-' + id).submit();
-            }
-        });
-    });
-});
-</script>
 @endsection

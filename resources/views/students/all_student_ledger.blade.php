@@ -62,7 +62,8 @@
                                     <td class="text-center fw-bold">{{ $loop->iteration }}</td>
 
                                     <td>
-                                        <a href="{{ route('students.ledger', $s->id) }}" class="text-primary fw-bold">
+                                        <a href="{{ route('students.ledger', $s->id) }}"
+                                        class="text-success fw-bold text-decoration-none">
                                             {{ $s->name }}
                                         </a>
                                     </td>

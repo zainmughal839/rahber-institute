@@ -34,6 +34,7 @@ class RolePermissionSeeder extends Seeder
             'student.create',
             'student.update',
             'student.delete',
+            'student.promote',
 
             // teacher
             'teacher.index',
@@ -73,7 +74,7 @@ class RolePermissionSeeder extends Seeder
 
 
 
- // task-cat Assignments
+            // task-cat Assignments
             'task-cat.index',
             'task-cat.create',
             'task-cat.update',
@@ -118,9 +119,6 @@ class RolePermissionSeeder extends Seeder
             'assign-paper.update',
             'assign-paper.delete',
             'assign-paper.check-result',
-            'assign-paper.notuse',
-            'assign-paper.nouse',
-            'assign-paper.noouse',
 
 
              // assign-paper
@@ -128,6 +126,39 @@ class RolePermissionSeeder extends Seeder
             'settings.create',
             'settings.update',
             'settings.delete',
+
+
+            // ACCOUNTS / CASH
+            // challan
+            'challan.index',
+            'challan.create',
+            'challan.pay',
+            'challan.delete',
+
+            // Teacher Salary
+            'teacher-salary.index',
+            'teacher-salary.create',
+            'teacher-salary.update',
+            'teacher-salary.delete',
+
+            // expense head
+            'expense-head.index',
+            'expense-head.create',
+            'expense-head.update',
+            'expense-head.delete',
+
+            // expense
+            'expense.index',
+            'expense.create',
+            'expense.update',
+            'expense.delete',
+
+            // profit loss
+            'profit-loss.index',
+            'profit-loss.notuse',
+            'profit-loss.nouse',
+            'profit-loss.noouse',
+
             
 
             // ROLES

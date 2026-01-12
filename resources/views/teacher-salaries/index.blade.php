@@ -30,10 +30,12 @@
                         <h3 class="card-title fw-bold mb-0">
                             <i class="bi bi-wallet2 me-2"></i> Teacher Salaries
                         </h3>
+                        @can('teacher-salary.create')
                         <a href="{{ route('teacher-salaries.create') }}"
                            class="btn btn-outline-light btn-sm shadow-sm">
                             <i class="bi bi-plus-circle me-1"></i> Pay Salary
                         </a>
+                        @endcan
                     </div>
                 </div>
 
@@ -121,19 +123,20 @@
                                     
 
                                     <td class="text-center">
-    <div class="btn-group">
-        <a href="{{ route('teacher-salaries.print', $salary->id) }}"
-           target="_blank"
-           class="btn btn-primary btn-sm">
-            <i class="bi bi-printer"></i>
-        </a>
-
-        <button class="btn btn-danger btn-sm delete-salary"
-                data-id="{{ $salary->id }}">
-            <i class="bi bi-trash"></i>
-        </button>
-    </div>
-</td>
+                                        <div class="btn-group">
+                                            <a href="{{ route('teacher-salaries.print', $salary->id) }}"
+                                            target="_blank"
+                                            class="btn btn-primary btn-sm">
+                                                <i class="bi bi-printer"></i>
+                                            </a>
+                                            @can('teacher-salary.delete')
+                                            <button class="btn btn-danger btn-sm delete-salary"
+                                                    data-id="{{ $salary->id }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                            @endcan
+                                        </div>
+                                    </td>
 
                                 </tr>
                                 @empty
@@ -160,27 +163,49 @@
     </div>
 </div>
 
-{{-- SweetAlert --}}
+
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 document.querySelectorAll('.delete-salary').forEach(btn => {
     btn.addEventListener('click', function () {
-        const id = this.dataset.id;
+        const salaryId = this.dataset.id;
 
         Swal.fire({
-            title: 'Delete Salary?',
-            text: 'This salary record will be permanently deleted!',
+            title: 'Are you sure?',
+            text: "This salary voucher will be permanently deleted!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#dc3545',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Yes, Delete!'
+            confirmButtonText: 'Yes, delete it',
+            cancelButtonText: 'Cancel'
         }).then((result) => {
             if (result.isConfirmed) {
-                document.getElementById('delete-form-' + id).submit();
+                fetch(`{{ url('teacher-salaries') }}/${salaryId}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Deleted!',
+                            text: 'Salary voucher deleted successfully.',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => location.reload());
+                    }
+                });
             }
         });
     });
 });
 </script>
+
+
+
+
 @endsection
